@@ -22,10 +22,19 @@ func (p *signUpRequestPayload) check() (errResponse controllers.JSONResponse, is
 			Data:    nil,
 		}, true
 	}
+
 	if p.Password == "" || len(p.Password) > passwordMaximumLength {
 		return controllers.JSONResponse{
 			Code:    errCodeRequestPayloadPasswordFieldNotValid,
 			Message: errMessageRequestPayloadPasswordFieldNotValid,
+			Data:    nil,
+		}, true
+	}
+
+	if p.CaptchaUUID == "" || p.CaptchaVal == "" {
+		return controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestPayloadCaptchaFieldNotValid,
+			Message: controllers.ErrMessageRequestPayloadCaptchaFieldNotValid,
 			Data:    nil,
 		}, true
 	}
