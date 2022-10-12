@@ -2,6 +2,6 @@ package controllers
 
 type JSONResponse struct {
 	Code    string
-	Message string
+	Message interface{}
 	Data    interface{}
 }
