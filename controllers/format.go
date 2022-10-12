@@ -10,5 +10,4 @@ func BindJSON(c *gin.Context, r interface{}) (JSONResponse, error) {
 		Message: ErrMessageContentTypeNotJSONFromat,
 		Data:    nil,
 	}, err
-
 }

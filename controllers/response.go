@@ -1,6 +1,7 @@
 package controllers
 
-const MessageSuccess string = "success"
+const SuccessMessage string = "success"
+const SuccessCode string = "success-200-s"
 
 // All common error codes
 const ErrCodeRequestContentTypeNotJSONFormat string = "err-400-rctnjsonf"

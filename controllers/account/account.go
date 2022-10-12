@@ -17,6 +17,7 @@ func SignUp(c *gin.Context) {
 	errResp, isNotValid := requestPayload.check()
 	if isNotValid {
 		c.JSON(http.StatusBadRequest, errResp)
+		return
 	}
 }
 
