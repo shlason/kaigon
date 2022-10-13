@@ -14,9 +14,9 @@ func OAuthCallbackForGoogle(c *gin.Context) {
 
 }
 
-func GetCaptchaInfo(c *gin.Context) {
-	const captchaCodeLength int = 6
+const captchaCodeLength int = 6
 
+func GetCaptchaInfo(c *gin.Context) {
 	authCaptchaModel := &models.AuthCaptcha{
 		UUID: uuid.NewString(),
 		Code: utils.RandStringBytes(captchaCodeLength),
@@ -70,5 +70,24 @@ func GetCaptchaImage(c *gin.Context) {
 }
 
 func UpdateCaptchaInfo(c *gin.Context) {
-
+	requestParams := &updateCaptchaImageRequestParamsPayload{}
+	requestParams.BindParams(c)
+	authCaptchaModel := &models.AuthCaptcha{
+		UUID: requestParams.CaptchaUUID,
+		Code: utils.RandStringBytes(captchaCodeLength),
+	}
+	err := authCaptchaModel.UpdateByUUID()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisSetKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
+	})
 }
