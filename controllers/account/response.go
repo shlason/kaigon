@@ -15,4 +15,7 @@ const (
 
 	errCodeRequestPayloadCaptchaFieldCompareMismatch    = "err-rpcfcm"
 	errMessageRequestPayloadCaptchaFieldCompareMismatch = "capcha uuid or capcha code incorrect"
+
+	errCodeRequestPayloadEmailFieldDatabaseRecordAlreadyExist    = "err-409-rpefdbrae"
+	errMessageRequestPayloadEmailFieldDatabaseRecordAlreadyExist = "email record already exist"
 )

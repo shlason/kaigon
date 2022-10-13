@@ -51,7 +51,16 @@ func SignUp(c *gin.Context) {
 		Email:    requestPayload.Email,
 		Password: string(hashPwd),
 	}
-	result := accountModel.Create()
+	result := accountModel.ReadByEmail()
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusConflict, controllers.JSONResponse{
+			Code:    errCodeRequestPayloadEmailFieldDatabaseRecordAlreadyExist,
+			Message: errMessageRequestPayloadEmailFieldDatabaseRecordAlreadyExist,
+			Data:    nil,
+		})
+		return
+	}
+	result = accountModel.Create()
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
 			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
