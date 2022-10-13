@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
@@ -11,6 +12,7 @@ import (
 
 var db *gorm.DB
 var rdb *redis.Client
+var rctx context.Context = context.Background()
 
 func init() {
 	dsn := fmt.Sprintf(
