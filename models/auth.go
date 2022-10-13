@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthCaptcha struct {
@@ -29,4 +30,50 @@ func (ac *AuthCaptcha) UpdateByUUID() error {
 
 func (ac *AuthCaptcha) Delete() error {
 	return rdb.Del(rctx, fmt.Sprintf("auth:captcha:%s", ac.UUID)).Err()
+}
+
+type AuthAccountEmailVerification struct {
+	AccountUUID string
+	Token       string
+	Code        string
+}
+
+func (aaev *AuthAccountEmailVerification) Create() error {
+	token, err := bcrypt.GenerateFromPassword([]byte(uuid.NewString()), 14)
+	if err != nil {
+		return err
+	}
+	code, err := bcrypt.GenerateFromPassword([]byte(uuid.NewString()), 14)
+	if err != nil {
+		return err
+	}
+	err = rdb.SetNX(rctx, fmt.Sprintf("auth:account:email:verification:%s", aaev.AccountUUID), fmt.Sprintf("%s/%s", string(token), string(code)), 15*time.Minute).Err()
+	if err != nil {
+		return err
+	}
+	aaev.Token = string(token)
+	aaev.Code = string(code)
+	return err
+}
+
+func (aaev *AuthAccountEmailVerification) Read() error {
+	val, err := rdb.Get(rctx, fmt.Sprintf("auth:account:email:verification:%s", aaev.AccountUUID)).Result()
+	aaev.Code = val
+	return err
+}
+
+func (aaev *AuthAccountEmailVerification) Update() error {
+	token, err := bcrypt.GenerateFromPassword([]byte(uuid.NewString()), 14)
+	if err != nil {
+		return err
+	}
+	code, err := bcrypt.GenerateFromPassword([]byte(uuid.NewString()), 14)
+	if err != nil {
+		return err
+	}
+	return rdb.Set(rctx, fmt.Sprintf("auth:account:email:verification:%s", aaev.AccountUUID), fmt.Sprintf("%s/%s", string(token), string(code)), 15*time.Minute).Err()
+}
+
+func (aaev *AuthAccountEmailVerification) Delete() error {
+	return rdb.Del(rctx, fmt.Sprintf("auth:account:email:verification:%s", aaev.AccountUUID)).Err()
 }
