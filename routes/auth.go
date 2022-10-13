@@ -1,11 +1,16 @@
 package routes
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/shlason/kaigon/controllers/auth"
+)
 
 func RegisteAuthRoutes(r *gin.RouterGroup) {
-	r.GET("/auth/o/google/callback")
+	// OAuth callback
+	r.GET("/auth/o/google/callback", auth.OAuthCallbackForGoogle)
 
-	r.GET("/auth/captcha")
-	r.GET("/auth/captcha/:captchaUUID/image")
-	r.GET("/auth/captcha/:captchaUUID/refresh")
+	// Captcha
+	r.GET("/auth/captcha", auth.GetCaptchaImage)
+	r.GET("/auth/captcha/:captchaUUID/image", auth.GetCaptchaImage)
+	r.GET("/auth/captcha/:captchaUUID/refresh", auth.UpdateCaptchaInfo)
 }
