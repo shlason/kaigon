@@ -15,7 +15,7 @@ type AuthCaptcha struct {
 
 func (ac *AuthCaptcha) Create() error {
 	ac.UUID = uuid.NewString()
-	return rdb.SetNX(rctx, fmt.Sprintf("auth:captcha:%s", ac.UUID), "captcahCode", 5*time.Minute).Err()
+	return rdb.SetNX(rctx, fmt.Sprintf("auth:captcha:%s", ac.UUID), ac.Code, 5*time.Minute).Err()
 }
 
 func (ac *AuthCaptcha) ReadByUUID() error {
@@ -25,7 +25,7 @@ func (ac *AuthCaptcha) ReadByUUID() error {
 }
 
 func (ac *AuthCaptcha) UpdateByUUID() error {
-	return rdb.Set(rctx, fmt.Sprintf("auth:captcha:%s", ac.UUID), "captcahCode", 5*time.Minute).Err()
+	return rdb.Set(rctx, fmt.Sprintf("auth:captcha:%s", ac.UUID), ac.Code, 5*time.Minute).Err()
 }
 
 func (ac *AuthCaptcha) Delete() error {

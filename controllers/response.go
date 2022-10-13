@@ -14,7 +14,8 @@ const (
 	// 5XX
 	ErrCodeServerGeneralFunctionGotError string = "err-500-sgfge"
 	ErrCodeServerDatabaseQueryGotError   string = "err-500-sdbqge"
-	ErrCodeServerRedisSetKeyGotError     string = "err-500-srskge"
+	ErrCodeServerRedisSetNXKeyGotError   string = "err-500-srsnxkge"
+	ErrCodeServerRedisGetKeyGotError     string = "err-500-srgkge"
 
 	// All common error message
 	ErrMessageContentTypeNotJSONFromat           string = "Content-Type is not JSON format"

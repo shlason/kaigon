@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,7 +24,7 @@ func GetCaptchaInfo(c *gin.Context) {
 	err := authCaptchaModel.Create()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
-			Code:    controllers.ErrCodeServerRedisSetKeyGotError,
+			Code:    controllers.ErrCodeServerRedisSetNXKeyGotError,
 			Message: err,
 			Data:    nil,
 		})
@@ -41,9 +40,33 @@ func GetCaptchaInfo(c *gin.Context) {
 }
 
 func GetCaptchaImage(c *gin.Context) {
+	requestParams := &getCaptchaImageRequestParamsPayload{}
+	requestParams.BindParams(c)
+	authCaptchaModel := &models.AuthCaptcha{
+		UUID: requestParams.CaptchaUUID,
+	}
+	err := authCaptchaModel.ReadByUUID()
 
-	fmt.Println("Suss")
-	//c.Data(http.StatusOK, "image/png", buffer.Bytes())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisGetKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	buffer, err := utils.CreateCaptchaImage(authCaptchaModel.Code)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+	}
+
+	c.Data(http.StatusOK, "image/png", buffer.Bytes())
 }
 
 func UpdateCaptchaInfo(c *gin.Context) {
