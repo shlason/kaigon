@@ -9,7 +9,7 @@ type signUpRequestPayload struct {
 	Email       string
 	Password    string
 	CaptchaUUID string
-	CaptchaVal  string
+	CaptchaCode string
 }
 
 func (p *signUpRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
@@ -31,7 +31,7 @@ func (p *signUpRequestPayload) check() (errResponse controllers.JSONResponse, is
 		}, true
 	}
 
-	if p.CaptchaUUID == "" || p.CaptchaVal == "" {
+	if p.CaptchaUUID == "" || p.CaptchaCode == "" {
 		return controllers.JSONResponse{
 			Code:    controllers.ErrCodeRequestPayloadCaptchaFieldNotValid,
 			Message: controllers.ErrMessageRequestPayloadCaptchaFieldNotValid,
@@ -46,7 +46,7 @@ type signInRequestPayload struct {
 	Email       string
 	Password    string
 	CaptchaUUID string
-	CaptchaVal  string
+	CaptchaCode string
 }
 
 func (p *signInRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
@@ -68,7 +68,7 @@ func (p *signInRequestPayload) check() (errResponse controllers.JSONResponse, is
 		}, true
 	}
 
-	if p.CaptchaUUID == "" || p.CaptchaVal == "" {
+	if p.CaptchaUUID == "" || p.CaptchaCode == "" {
 		return controllers.JSONResponse{
 			Code:    controllers.ErrCodeRequestPayloadCaptchaFieldNotValid,
 			Message: controllers.ErrMessageRequestPayloadCaptchaFieldNotValid,
