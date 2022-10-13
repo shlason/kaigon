@@ -37,15 +37,7 @@ func SignUp(c *gin.Context) {
 		UUID: requestPayload.CaptchaUUID,
 	}
 	err = authCaptchaModel.ReadByUUID()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
-			Code:    errCodeRequestPayloadCaptchaFieldCompareMismatch,
-			Message: errMessageRequestPayloadCaptchaFieldCompareMismatch,
-			Data:    nil,
-		})
-		return
-	}
-	if authCaptchaModel.Code != requestPayload.CaptchaCode {
+	if err != nil || authCaptchaModel.Code != requestPayload.CaptchaCode {
 		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
 			Code:    errCodeRequestPayloadCaptchaFieldCompareMismatch,
 			Message: errMessageRequestPayloadCaptchaFieldCompareMismatch,
@@ -87,6 +79,19 @@ func SignIn(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errResp)
 		return
 	}
+	authCaptchaModel := &models.AuthCaptcha{
+		UUID: requestPayload.CaptchaUUID,
+	}
+	err = authCaptchaModel.ReadByUUID()
+	if err != nil || authCaptchaModel.Code != requestPayload.CaptchaCode {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    errCodeRequestPayloadCaptchaFieldCompareMismatch,
+			Message: errMessageRequestPayloadCaptchaFieldCompareMismatch,
+			Data:    nil,
+		})
+		return
+	}
+	authCaptchaModel.Delete()
 	accountModel := &models.Account{
 		Email: requestPayload.Email,
 	}
