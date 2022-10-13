@@ -12,4 +12,7 @@ const (
 
 	errCodeRequestPayloadPasswordFieldCompareMismatch    = "err-400-rppfcm"
 	errMessageRequestPayloadPasswordFieldCompareMismatch = "password mismatch"
+
+	errCodeRequestPayloadCaptchaFieldCompareMismatch    = "err-rpcfcm"
+	errMessageRequestPayloadCaptchaFieldCompareMismatch = "capcha uuid or capcha code incorrect"
 )
