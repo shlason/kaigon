@@ -36,6 +36,7 @@ type AuthAccountEmailVerification struct {
 	AccountUUID string
 	Token       string
 	Code        string
+	Result      string
 }
 
 func (aaev *AuthAccountEmailVerification) Create() error {
@@ -58,7 +59,7 @@ func (aaev *AuthAccountEmailVerification) Create() error {
 
 func (aaev *AuthAccountEmailVerification) Read() error {
 	val, err := rdb.Get(rctx, fmt.Sprintf("auth:account:email:verification:%s", aaev.AccountUUID)).Result()
-	aaev.Code = val
+	aaev.Result = val
 	return err
 }
 
@@ -76,4 +77,57 @@ func (aaev *AuthAccountEmailVerification) Update() error {
 
 func (aaev *AuthAccountEmailVerification) Delete() error {
 	return rdb.Del(rctx, fmt.Sprintf("auth:account:email:verification:%s", aaev.AccountUUID)).Err()
+}
+
+type AuthAccountResetPassword struct {
+	AccountUUID string
+	Token       string
+	Code        string
+	Result      string
+}
+
+func (aarp *AuthAccountResetPassword) Create() error {
+	token, err := bcrypt.GenerateFromPassword([]byte(uuid.NewString()), 14)
+	if err != nil {
+		return err
+	}
+	code, err := bcrypt.GenerateFromPassword([]byte(uuid.NewString()), 14)
+	if err != nil {
+		return err
+	}
+	err = rdb.SetNX(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID), fmt.Sprintf("%s/%s", string(token), string(code)), 5*time.Minute).Err()
+	if err != nil {
+		return err
+	}
+	aarp.Token = string(token)
+	aarp.Code = string(code)
+	return err
+}
+
+func (aarp *AuthAccountResetPassword) Read() error {
+	val, err := rdb.Get(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID)).Result()
+	aarp.Result = val
+	return err
+}
+
+func (aarp *AuthAccountResetPassword) Update() error {
+	token, err := bcrypt.GenerateFromPassword([]byte(uuid.NewString()), 14)
+	if err != nil {
+		return err
+	}
+	code, err := bcrypt.GenerateFromPassword([]byte(uuid.NewString()), 14)
+	if err != nil {
+		return err
+	}
+	err = rdb.Set(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID), fmt.Sprintf("%s/%s", string(token), string(code)), 5*time.Minute).Err()
+	if err != nil {
+		return err
+	}
+	aarp.Token = string(token)
+	aarp.Code = string(code)
+	return err
+}
+
+func (aarp *AuthAccountResetPassword) Delete() error {
+	return rdb.Del(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID)).Err()
 }
