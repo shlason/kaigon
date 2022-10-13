@@ -12,9 +12,9 @@ import (
 )
 
 func CreateCaptchaImage(captchaCode string) (*bytes.Buffer, error) {
-	img := image.NewRGBA(image.Rect(0, 0, 150, 80))
+	img := image.NewRGBA(image.Rect(0, 0, 240, 80))
 	buffer := &bytes.Buffer{}
-	addLabel(img, 55, 45, captchaCode)
+	addLabel(img, 100, 45, captchaCode)
 
 	if err := png.Encode(buffer, img); err != nil {
 		return nil, err
