@@ -34,7 +34,7 @@ func SignUp(c *gin.Context) {
 		return
 	}
 	accountModel := &models.Account{
-		Uuid:     uuid.NewString(),
+		UUID:     uuid.NewString(),
 		Email:    requestPayload.Email,
 		Password: string(hashPwd),
 	}
