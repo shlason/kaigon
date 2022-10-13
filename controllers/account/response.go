@@ -1,13 +1,15 @@
 package account
 
-const errCodeRequestPayloadEmailFieldNotValid = "err-400-rpefnv"
-const errMessageRequestPayloadEmailFieldNotValid = "email field is not valid"
+const (
+	errCodeRequestPayloadEmailFieldNotValid    = "err-400-rpefnv"
+	errMessageRequestPayloadEmailFieldNotValid = "email field is not valid"
 
-const errCodeRequestPayloadPasswordFieldNotValid = "err-400-rppfnv"
-const errMessageRequestPayloadPasswordFieldNotValid = "password field is not valid"
+	errCodeRequestPayloadPasswordFieldNotValid    = "err-400-rppfnv"
+	errMessageRequestPayloadPasswordFieldNotValid = "password field is not valid"
 
-const errCodeRequestPayloadEmailFieldDatabaseRecordNotFound = "err-400-rpefdbrnf"
-const errMessageRequestPayloadEmailFieldDatabaseRecordNotFound = "email record not found"
+	errCodeRequestPayloadEmailFieldDatabaseRecordNotFound    = "err-400-rpefdbrnf"
+	errMessageRequestPayloadEmailFieldDatabaseRecordNotFound = "email record not found"
 
-const errCodeRequestPayloadPasswordFieldCompareMismatch = "err-400-rppfcm"
-const errMessageRequestPayloadPasswordFieldCompareMismatch = "password mismatch"
+	errCodeRequestPayloadPasswordFieldCompareMismatch    = "err-400-rppfcm"
+	errMessageRequestPayloadPasswordFieldCompareMismatch = "password mismatch"
+)
