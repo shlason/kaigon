@@ -17,6 +17,7 @@ const (
 	ErrCodeServerRedisSetNXKeyGotError   string = "err-500-srsnxkge"
 	ErrCodeServerRedisSetKeyGotError     string = "err-500-srskge"
 	ErrCodeServerRedisGetKeyGotError     string = "err-500-srgkge"
+	ErrCodeServerSendEmailGotError       string = "err-500-ssege"
 
 	// All common error message
 	ErrMessageContentTypeNotJSONFromat           string = "Content-Type is not JSON format"
