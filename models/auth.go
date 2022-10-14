@@ -131,3 +131,7 @@ func (aarp *AuthAccountResetPassword) Update() error {
 func (aarp *AuthAccountResetPassword) Delete() error {
 	return rdb.Del(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID)).Err()
 }
+
+func (aarp *AuthAccountResetPassword) IsMatch() bool {
+	return aarp.Result == fmt.Sprintf("%s/%s", aarp.Token, aarp.Code)
+}

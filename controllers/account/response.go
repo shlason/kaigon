@@ -13,8 +13,11 @@ const (
 	errCodeRequestPayloadPasswordFieldCompareMismatch    = "err-400-rppfcm"
 	errMessageRequestPayloadPasswordFieldCompareMismatch = "password mismatch"
 
-	errCodeRequestPayloadCaptchaFieldCompareMismatch    = "err-rpcfcm"
+	errCodeRequestPayloadCaptchaFieldCompareMismatch    = "err-400-rpcfcm"
 	errMessageRequestPayloadCaptchaFieldCompareMismatch = "capcha uuid or capcha code incorrect"
+
+	errCodeRequestPayloadTokenCodeFieldsNotValid    = "err-400-eptcfnv"
+	errMessageRequestPayloadTokenCodeFieldsNotValid = "auth token or code is not valid"
 
 	errCodeRequestPayloadEmailFieldDatabaseRecordAlreadyExist    = "err-409-rpefdbrae"
 	errMessageRequestPayloadEmailFieldDatabaseRecordAlreadyExist = "email record already exist"
