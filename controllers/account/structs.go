@@ -1,7 +1,10 @@
 package account
 
 import (
+	"fmt"
+
 	"github.com/shlason/kaigon/controllers"
+	"github.com/shlason/kaigon/models"
 	"github.com/shlason/kaigon/utils"
 )
 
@@ -77,4 +80,37 @@ func (p *signInRequestPayload) check() (errResponse controllers.JSONResponse, is
 	}
 
 	return controllers.JSONResponse{}, false
+}
+
+type createResetPasswordSessionRequestPayload struct {
+	Email string
+}
+
+func (p *createResetPasswordSessionRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
+	if !utils.IsValidEmailAddress(p.Email) {
+		return controllers.JSONResponse{
+			Code:    errCodeRequestPayloadEmailFieldNotValid,
+			Message: errMessageRequestPayloadEmailFieldNotValid,
+			Data:    nil,
+		}, true
+	}
+
+	return controllers.JSONResponse{}, false
+}
+
+type resetPasswordTemplateParams struct {
+	Link string
+}
+
+func (p *resetPasswordTemplateParams) generate(accountUUID string) error {
+	authAccountResetPasswordModel := &models.AuthAccountResetPassword{
+		AccountUUID: accountUUID,
+	}
+	err := authAccountResetPasswordModel.Create()
+	if err != nil {
+		return err
+	}
+	p.Link = fmt.Sprintf("{{ResetPasswordPageURL}}?token=%s&code=%s", authAccountResetPasswordModel.Token, authAccountResetPasswordModel.Code)
+
+	return err
 }

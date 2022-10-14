@@ -2,12 +2,14 @@ package account
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
+	"github.com/shlason/kaigon/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -145,7 +147,69 @@ func VerifyWithEmail(c *gin.Context) {
 }
 
 func CreateResetPasswordSession(c *gin.Context) {
+	var requestPayload *createResetPasswordSessionRequestPayload
+	errResponse, err := controllers.BindJSON(c, &requestPayload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errResponse)
+		return
+	}
+	fmt.Println(requestPayload)
+	errResp, isNotValid := requestPayload.check()
+	if isNotValid {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+	accountModel := &models.Account{
+		Email: requestPayload.Email,
+	}
+	result := accountModel.ReadByEmail()
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+				Code:    errCodeRequestPayloadEmailFieldDatabaseRecordNotFound,
+				Message: errMessageRequestPayloadEmailFieldDatabaseRecordNotFound,
+				Data:    nil,
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+	to := []string{
+		requestPayload.Email,
+	}
+	templatParams := &resetPasswordTemplateParams{}
+	err = templatParams.generate(accountModel.UUID)
 
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisSetNXKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	err = utils.SendEmail(to, "[Kaigon]：變更 Kaigon 帳號密碼的操作指示", "reset_password.html", templatParams)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerSendEmailGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
+	})
 }
 
 func ResetPassword(c *gin.Context) {
