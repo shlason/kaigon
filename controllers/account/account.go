@@ -2,7 +2,6 @@ package account
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -71,6 +70,7 @@ func SignUp(c *gin.Context) {
 		})
 		return
 	}
+	// utils.SendEmail([]string{requestPayload.Email}, "[Kaigon]：恭喜您註冊成功", "signup_success.html", struct{}{})
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
@@ -131,6 +131,80 @@ func SignIn(c *gin.Context) {
 		})
 		return
 	}
+
+	jwtModel := &models.JWTToken{
+		AccountUUID: accountModel.UUID,
+		Email:       accountModel.Email,
+	}
+
+	token, err := jwtModel.Generate()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGenerateJWTTokenGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data: signInResponsePayload{
+			Token: token,
+		},
+	})
+}
+
+func CreateVerifySession(c *gin.Context) {
+	var requestPayload *createVerifySessionRequestPayload
+	errResponse, err := controllers.BindJSON(c, &requestPayload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errResponse)
+		return
+	}
+	errResp, isNotValid := requestPayload.check()
+	if isNotValid {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+	// TODO: 以後增加多種驗證方式時，需加上方式的判斷來個別處理
+	if authPayload.AccountUUID != c.Param("accountUUID") || authPayload.Email != requestPayload.Email {
+		c.JSON(http.StatusForbidden, controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestPermissionForbidden,
+			Message: controllers.ErrMessageRequestPermissionForbidden,
+			Data:    nil,
+		})
+		return
+	}
+
+	templatParams := &verificationSessionTemplateParams{}
+	err = templatParams.generate(authPayload.AccountUUID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisSetNXKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	to := []string{
+		requestPayload.Email,
+	}
+	err = utils.SendEmail(to, "[Kaigon]：驗證 Kaigon 所註冊之 Email 的操作指示", "email_verification.html", templatParams)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerSendEmailGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
@@ -138,12 +212,45 @@ func SignIn(c *gin.Context) {
 	})
 }
 
-func CreateVerifySession(c *gin.Context) {
-
-}
-
 func VerifyWithEmail(c *gin.Context) {
+	requestPayload := &verifyWithEmailRequestPayload{
+		AccountUUID: c.Param("accountUUID"),
+		Token:       c.Query("token"),
+		Code:        c.Query("code"),
+	}
+	authAccountEmailVerificationModel := &models.AuthAccountEmailVerification{
+		AccountUUID: requestPayload.AccountUUID,
+		Token:       requestPayload.Token,
+		Code:        requestPayload.Code,
+	}
+	err := authAccountEmailVerificationModel.Read()
+	if !(err == nil && authAccountEmailVerificationModel.IsMatch()) {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    errCodeRequestPayloadTokenCodeFieldsNotValid,
+			Message: errMessageRequestPayloadTokenCodeFieldsNotValid,
+			Data:    nil,
+		})
+		return
+	}
+	accountModel := &models.Account{
+		UUID: requestPayload.AccountUUID,
+	}
+	result := accountModel.UpdateIsEmailVerifiedToTrueByAccountUUID()
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseUpdateGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
 
+	// TODO: 之後加上 redirect uri
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
+	})
 }
 
 func CreateResetPasswordSession(c *gin.Context) {
@@ -153,7 +260,6 @@ func CreateResetPasswordSession(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
-	fmt.Println(requestPayload)
 	errResp, isNotValid := requestPayload.check()
 	if isNotValid {
 		c.JSON(http.StatusBadRequest, errResp)
@@ -267,7 +373,6 @@ func ResetPassword(c *gin.Context) {
 		Code:        requestPayload.Code,
 	}
 	err = authAccountResetPasswordModel.Read()
-	fmt.Println("Resid Val", authAccountResetPasswordModel.Result)
 	if !(err == nil && authAccountResetPasswordModel.IsMatch()) {
 		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
 			Code:    errCodeRequestPayloadTokenCodeFieldsNotValid,

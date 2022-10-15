@@ -23,3 +23,7 @@ func (account *Account) ReadByEmail() *gorm.DB {
 func (account *Account) UpdatePasswordByEmail(password string) *gorm.DB {
 	return db.Model(&account).Where("email = ?", account.Email).Update("password", password)
 }
+
+func (account *Account) UpdateIsEmailVerifiedToTrueByAccountUUID() *gorm.DB {
+	return db.Model(&account).Where("uuid = ?", account.UUID).Update("is_email_verifieed", true)
+}

@@ -80,6 +80,10 @@ func (p *signInRequestPayload) check() (errResponse controllers.JSONResponse, is
 	return controllers.JSONResponse{}, false
 }
 
+type signInResponsePayload struct {
+	Token string
+}
+
 type createResetPasswordSessionRequestPayload struct {
 	Email string
 }
@@ -110,7 +114,7 @@ func (p *resetPasswordTemplateParams) generate(accountUUID string) error {
 	}
 	p.Link = fmt.Sprintf("{{ResetPasswordPageURL}}?token=%s&code=%s", authAccountResetPasswordModel.Token, authAccountResetPasswordModel.Code)
 
-	return err
+	return nil
 }
 
 type resetPasswordRequestPayload struct {
@@ -156,4 +160,57 @@ func (p *resetPasswordRequestPayload) check() (errResponse controllers.JSONRespo
 	}
 
 	return controllers.JSONResponse{}, false
+}
+
+type verificationSessionTemplateParams struct {
+	Link string
+}
+
+func (p *verificationSessionTemplateParams) generate(accountUUID string) error {
+	authAccountEmailVerificationModel := &models.AuthAccountEmailVerification{
+		AccountUUID: accountUUID,
+	}
+	err := authAccountEmailVerificationModel.Create()
+	if err != nil {
+		return err
+	}
+	p.Link = fmt.Sprintf("{{emailVerificationURL}}?token=%s&code=%s", authAccountEmailVerificationModel.Token, authAccountEmailVerificationModel.Code)
+
+	return nil
+}
+
+type createVerifySessionRequestPayload struct {
+	AccountUUID string
+	Email       string
+	Type        string
+}
+
+var acceptVerificationType = map[string]string{
+	"email": "email",
+}
+
+func (p *createVerifySessionRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
+	if !utils.IsValidEmailAddress(p.Email) {
+		return controllers.JSONResponse{
+			Code:    errCodeRequestPayloadEmailFieldNotValid,
+			Message: errMessageRequestPayloadEmailFieldNotValid,
+			Data:    nil,
+		}, true
+	}
+
+	if _, ok := acceptVerificationType[p.Type]; !ok {
+		return controllers.JSONResponse{
+			Code:    errCodeRequestPayloadVerificationTypeFieldNotValid,
+			Message: errMessageRequestPayloadVerificationTypeFieldNotValid,
+			Data:    nil,
+		}, true
+	}
+
+	return controllers.JSONResponse{}, false
+}
+
+type verifyWithEmailRequestPayload struct {
+	AccountUUID string
+	Token       string
+	Code        string
 }

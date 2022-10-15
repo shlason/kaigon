@@ -15,16 +15,17 @@ type JWTToken struct {
 	jwt.StandardClaims
 }
 
-func (tk *JWTToken) Generate() {
+func (tk *JWTToken) Generate() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, tk)
 	tokenString, err := token.SignedString([]byte("my_JWT_secret"))
-	fmt.Println("JWT: ", tokenString, "Error: ", err)
+
+	return tokenString, err
 }
 
-func ParseJWTToken(tk string) (*jwt.StandardClaims, error) {
+func ParseJWTToken(tk string) (*JWTToken, error) {
 	jwtToken, err := jwt.ParseWithClaims(
 		tk,
-		&jwt.StandardClaims{},
+		&JWTToken{},
 		func(token *jwt.Token) (i interface{}, e error) {
 			return []byte("my_JWT_secret"), nil
 		})
@@ -32,7 +33,7 @@ func ParseJWTToken(tk string) (*jwt.StandardClaims, error) {
 		return nil, err
 	}
 
-	if claim, ok := jwtToken.Claims.(*jwt.StandardClaims); ok && jwtToken.Valid {
+	if claim, ok := jwtToken.Claims.(*JWTToken); ok && jwtToken.Valid {
 		return claim, nil
 	}
 
@@ -110,6 +111,10 @@ func (aaev *AuthAccountEmailVerification) Delete() error {
 	return rdb.Del(rctx, fmt.Sprintf("auth:account:email:verification:%s", aaev.AccountUUID)).Err()
 }
 
+func (aaev *AuthAccountEmailVerification) IsMatch() bool {
+	return aaev.Result == fmt.Sprintf("%s/%s", aaev.Token, aaev.Code)
+}
+
 type AuthAccountResetPassword struct {
 	AccountUUID string
 	Token       string
@@ -126,7 +131,7 @@ func (aarp *AuthAccountResetPassword) Create() error {
 	if err != nil {
 		return err
 	}
-	err = rdb.SetNX(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID), fmt.Sprintf("%s/%s", string(token), string(code)), 5*time.Minute).Err()
+	err = rdb.SetNX(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID), fmt.Sprintf("%s/%s", string(token), string(code)), 10*time.Minute).Err()
 	if err != nil {
 		return err
 	}
@@ -150,7 +155,7 @@ func (aarp *AuthAccountResetPassword) Update() error {
 	if err != nil {
 		return err
 	}
-	err = rdb.Set(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID), fmt.Sprintf("%s/%s", string(token), string(code)), 5*time.Minute).Err()
+	err = rdb.Set(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID), fmt.Sprintf("%s/%s", string(token), string(code)), 10*time.Minute).Err()
 	if err != nil {
 		return err
 	}
