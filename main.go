@@ -10,11 +10,17 @@ import (
 func main() {
 	r := gin.Default()
 
+	// Common Middlewares
 	r.Use(cors.Default())
-	apiRoutes := r.Group("/api")
+	r.Use(gin.Recovery())
 
-	routes.RegisteAccountRoutes(apiRoutes)
-	routes.RegisteAuthRoutes(apiRoutes)
+	// Public API
+	public := r.Group("/api")
+	// Private API
+	private := r.Group("/api")
+
+	routes.RegisteAccountRoutes(public, private)
+	routes.RegisteAuthRoutes(public)
 
 	r.Run()
 }
