@@ -46,9 +46,14 @@ var Database = database{}
 var Smtp = smtp{}
 
 func init() {
-	homeDir, _ := os.UserHomeDir()
-	cfg, err := ini.Load(filepath.Join(homeDir, os.Getenv("CONFIG_FILE_PATH_BASE_ON_HOME")))
+	homeDir, err := os.UserHomeDir()
 
+	if err != nil {
+		fmt.Printf("Fail to get user home dir: %s", err)
+	}
+
+	cfg, err := ini.Load(filepath.Join(homeDir, os.Getenv("CONFIG_FILE_PATH_BASE_ON_HOME")))
+	fmt.Println(filepath.Join(homeDir, os.Getenv("CONFIG_FILE_PATH_BASE_ON_HOME")))
 	if err != nil {
 		fmt.Printf("Fail to read file: %v", err)
 		os.Exit(1)
