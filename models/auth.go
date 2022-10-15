@@ -127,7 +127,7 @@ func (aarp *AuthAccountResetPassword) Create() error {
 	if err != nil {
 		return err
 	}
-	err = rdb.SetNX(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID), fmt.Sprintf("%s/%s", string(token), string(code)), 5*time.Minute).Err()
+	err = rdb.SetNX(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID), fmt.Sprintf("%s/%s", string(token), string(code)), 10*time.Minute).Err()
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func (aarp *AuthAccountResetPassword) Update() error {
 	if err != nil {
 		return err
 	}
-	err = rdb.Set(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID), fmt.Sprintf("%s/%s", string(token), string(code)), 5*time.Minute).Err()
+	err = rdb.Set(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID), fmt.Sprintf("%s/%s", string(token), string(code)), 10*time.Minute).Err()
 	if err != nil {
 		return err
 	}
