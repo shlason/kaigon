@@ -71,6 +71,7 @@ func SignUp(c *gin.Context) {
 		})
 		return
 	}
+	// utils.SendEmail([]string{requestPayload.Email}, "[Kaigon]：恭喜您註冊成功", "signup_success.html", struct{}{})
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
@@ -131,10 +132,29 @@ func SignIn(c *gin.Context) {
 		})
 		return
 	}
+
+	jwtModel := &models.JWTToken{
+		AccountUUID: accountModel.UUID,
+		Email:       accountModel.Email,
+	}
+
+	token, err := jwtModel.Generate()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGenerateJWTTokenGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
-		Data:    nil,
+		Data: signInResponsePayload{
+			Token: token,
+		},
 	})
 }
 

@@ -43,7 +43,7 @@ func JWT(c *gin.Context) {
 		return
 	}
 
-	_, err = models.ParseJWTToken(tokenHeader[1])
+	claim, err := models.ParseJWTToken(tokenHeader[1])
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, controllers.JSONResponse{
@@ -54,4 +54,7 @@ func JWT(c *gin.Context) {
 		c.Abort()
 		return
 	}
+
+	c.Set("authPayload", claim)
+	c.Next()
 }

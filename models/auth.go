@@ -15,16 +15,17 @@ type JWTToken struct {
 	jwt.StandardClaims
 }
 
-func (tk *JWTToken) Generate() {
+func (tk *JWTToken) Generate() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, tk)
 	tokenString, err := token.SignedString([]byte("my_JWT_secret"))
-	fmt.Println("JWT: ", tokenString, "Error: ", err)
+
+	return tokenString, err
 }
 
-func ParseJWTToken(tk string) (*jwt.StandardClaims, error) {
+func ParseJWTToken(tk string) (*JWTToken, error) {
 	jwtToken, err := jwt.ParseWithClaims(
 		tk,
-		&jwt.StandardClaims{},
+		&JWTToken{},
 		func(token *jwt.Token) (i interface{}, e error) {
 			return []byte("my_JWT_secret"), nil
 		})
@@ -32,7 +33,7 @@ func ParseJWTToken(tk string) (*jwt.StandardClaims, error) {
 		return nil, err
 	}
 
-	if claim, ok := jwtToken.Claims.(*jwt.StandardClaims); ok && jwtToken.Valid {
+	if claim, ok := jwtToken.Claims.(*JWTToken); ok && jwtToken.Valid {
 		return claim, nil
 	}
 

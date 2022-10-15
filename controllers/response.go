@@ -12,13 +12,14 @@ const (
 	ErrCodeRequestPayloadCaptchaFieldNotValid string = "err-400-rpcfnv"
 
 	// 5XX
-	ErrCodeServerGeneralFunctionGotError string = "err-500-sgfge"
-	ErrCodeServerDatabaseQueryGotError   string = "err-500-sdbqge"
-	ErrCodeServerDatabaseUpdateGotError  string = "err-500-sdbuge"
-	ErrCodeServerRedisSetNXKeyGotError   string = "err-500-srsnxkge"
-	ErrCodeServerRedisSetKeyGotError     string = "err-500-srskge"
-	ErrCodeServerRedisGetKeyGotError     string = "err-500-srgkge"
-	ErrCodeServerSendEmailGotError       string = "err-500-ssege"
+	ErrCodeServerGeneralFunctionGotError  string = "err-500-sgfge"
+	ErrCodeServerDatabaseQueryGotError    string = "err-500-sdbqge"
+	ErrCodeServerDatabaseUpdateGotError   string = "err-500-sdbuge"
+	ErrCodeServerRedisSetNXKeyGotError    string = "err-500-srsnxkge"
+	ErrCodeServerRedisSetKeyGotError      string = "err-500-srskge"
+	ErrCodeServerRedisGetKeyGotError      string = "err-500-srgkge"
+	ErrCodeServerSendEmailGotError        string = "err-500-ssege"
+	ErrCodeServerGenerateJWTTokenGotError string = "err-500-sgjwttge"
 
 	// All common error message
 	ErrMessageContentTypeNotJSONFromat           string = "Content-Type is not JSON format"
