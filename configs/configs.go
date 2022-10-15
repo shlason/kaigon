@@ -3,6 +3,7 @@ package configs
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/ini.v1"
 )
@@ -45,7 +46,9 @@ var Database = database{}
 var Smtp = smtp{}
 
 func init() {
-	cfg, err := ini.Load("configs.ini")
+	homeDir, _ := os.UserHomeDir()
+	cfg, err := ini.Load(filepath.Join(homeDir, fmt.Sprintf("%s/configs.ini", os.Getenv("configPath"))))
+
 	if err != nil {
 		fmt.Printf("Fail to read file: %v", err)
 		os.Exit(1)
