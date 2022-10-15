@@ -30,7 +30,7 @@ import (
 // @license.name MIT
 // @license.url  https://github.com/shlason/kaigon/blob/main/LICENSE
 
-// @host     https://kaigon.sidesideeffect.io
+// @host     kaigon.sidesideeffect.io
 // @BasePath /api
 
 // @securityDefinitions.apikey BearerAuth
@@ -39,7 +39,7 @@ import (
 func main() {
 	var g errgroup.Group
 
-	docs.SwaggerInfo.Schemes = []string{"http", "https"}
+	docs.SwaggerInfo.Schemes = []string{"https"}
 
 	r := gin.Default()
 
