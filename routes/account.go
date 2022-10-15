@@ -11,6 +11,7 @@ func RegisteAccountRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	publicR.POST("/account/info/password/reset", account.CreateResetPasswordSession)
 	publicR.PATCH("/account/info/password/reset", account.ResetPassword)
 
+	publicR.GET("/account/:accountID/info/verification/email", account.VerifyWithEmail)
+
 	privateR.POST("/account/:accountID/info/verification", account.CreateVerifySession)
-	privateR.GET("/account/:accountID/info/verification/email", account.VerifyWithEmail)
 }
