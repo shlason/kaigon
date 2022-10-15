@@ -47,7 +47,7 @@ var Smtp = smtp{}
 
 func init() {
 	homeDir, _ := os.UserHomeDir()
-	cfg, err := ini.Load(filepath.Join(homeDir, fmt.Sprintf("%s/configs.ini", os.Getenv("configPath"))))
+	cfg, err := ini.Load(filepath.Join(homeDir, os.Getenv("CONFIG_FILE_PATH_BASE_ON_HOME")))
 
 	if err != nil {
 		fmt.Printf("Fail to read file: %v", err)

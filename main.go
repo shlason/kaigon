@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -34,16 +35,18 @@ func main() {
 	routes.RegisteAccountRoutes(public, private)
 	routes.RegisteAuthRoutes(public)
 
-	//r.Run()
+	if os.Getenv("CODE_RUN_ENV") == "prod" {
+		g.Go(func() error {
+			return http.ListenAndServe(":http", http.RedirectHandler(fmt.Sprintf("https://%s", configs.Server.Host), http.StatusSeeOther))
+		})
+		g.Go(func() error {
+			return http.Serve(autocert.NewListener(configs.Server.Host), r)
+		})
 
-	g.Go(func() error {
-		return http.ListenAndServe(":http", http.RedirectHandler(fmt.Sprintf("https://%s", configs.Server.Host), http.StatusSeeOther))
-	})
-	g.Go(func() error {
-		return http.Serve(autocert.NewListener(configs.Server.Host), r)
-	})
-
-	if err := g.Wait(); err != nil {
-		log.Fatal(err)
+		if err := g.Wait(); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		r.Run()
 	}
 }
