@@ -174,7 +174,7 @@ func (p *verificationSessionTemplateParams) generate(accountUUID string) error {
 	if err != nil {
 		return err
 	}
-	p.Link = fmt.Sprintf("{{ResetPasswordPageURL}}?token=%s&code=%s", authAccountEmailVerificationModel.Token, authAccountEmailVerificationModel.Code)
+	p.Link = fmt.Sprintf("{{emailVerificationURL}}?token=%s&code=%s", authAccountEmailVerificationModel.Token, authAccountEmailVerificationModel.Code)
 
 	return nil
 }
@@ -207,4 +207,10 @@ func (p *createVerifySessionRequestPayload) check() (errResponse controllers.JSO
 	}
 
 	return controllers.JSONResponse{}, false
+}
+
+type verifyWithEmailRequestPayload struct {
+	AccountUUID string
+	Token       string
+	Code        string
 }

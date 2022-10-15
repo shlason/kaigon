@@ -111,6 +111,10 @@ func (aaev *AuthAccountEmailVerification) Delete() error {
 	return rdb.Del(rctx, fmt.Sprintf("auth:account:email:verification:%s", aaev.AccountUUID)).Err()
 }
 
+func (aaev *AuthAccountEmailVerification) IsMatch() bool {
+	return aaev.Result == fmt.Sprintf("%s/%s", aaev.Token, aaev.Code)
+}
+
 type AuthAccountResetPassword struct {
 	AccountUUID string
 	Token       string

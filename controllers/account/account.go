@@ -2,7 +2,6 @@ package account
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -172,7 +171,7 @@ func CreateVerifySession(c *gin.Context) {
 	}
 	authPayload := c.MustGet("authPayload").(*models.JWTToken)
 	// TODO: 以後增加多種驗證方式時，需加上方式的判斷來個別處理
-	if authPayload.AccountUUID != c.Param("AccountUUID") || authPayload.Email != requestPayload.Email {
+	if authPayload.AccountUUID != c.Param("accountUUID") || authPayload.Email != requestPayload.Email {
 		c.JSON(http.StatusForbidden, controllers.JSONResponse{
 			Code:    controllers.ErrCodeRequestPermissionForbidden,
 			Message: controllers.ErrMessageRequestPermissionForbidden,
@@ -214,7 +213,44 @@ func CreateVerifySession(c *gin.Context) {
 }
 
 func VerifyWithEmail(c *gin.Context) {
+	requestPayload := &verifyWithEmailRequestPayload{
+		AccountUUID: c.Param("accountUUID"),
+		Token:       c.Query("token"),
+		Code:        c.Query("code"),
+	}
+	authAccountEmailVerificationModel := &models.AuthAccountEmailVerification{
+		AccountUUID: requestPayload.AccountUUID,
+		Token:       requestPayload.Token,
+		Code:        requestPayload.Code,
+	}
+	err := authAccountEmailVerificationModel.Read()
+	if !(err == nil && authAccountEmailVerificationModel.IsMatch()) {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    errCodeRequestPayloadTokenCodeFieldsNotValid,
+			Message: errMessageRequestPayloadTokenCodeFieldsNotValid,
+			Data:    nil,
+		})
+		return
+	}
+	accountModel := &models.Account{
+		UUID: requestPayload.AccountUUID,
+	}
+	result := accountModel.UpdateIsEmailVerifiedToTrueByAccountUUID()
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseUpdateGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
 
+	// TODO: 之後加上 redirect uri
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
+	})
 }
 
 func CreateResetPasswordSession(c *gin.Context) {
@@ -337,7 +373,6 @@ func ResetPassword(c *gin.Context) {
 		Code:        requestPayload.Code,
 	}
 	err = authAccountResetPasswordModel.Read()
-	fmt.Println("Resid Val", authAccountResetPasswordModel.Result)
 	if !(err == nil && authAccountResetPasswordModel.IsMatch()) {
 		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
 			Code:    errCodeRequestPayloadTokenCodeFieldsNotValid,
