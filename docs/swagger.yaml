@@ -17,7 +17,7 @@ definitions:
       data: {}
       message: {}
     type: object
-host: https://kaigon.sidesideeffect.io
+host: kaigon.sidesideeffect.io
 info:
   contact:
     email: nocvi111@gmail.com

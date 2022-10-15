@@ -14,7 +14,7 @@
         },
         "version": "1.0"
     },
-    "host": "https://kaigon.sidesideeffect.io",
+    "host": "kaigon.sidesideeffect.io",
     "basePath": "/api",
     "paths": {
         "/account/:accountUUID/info/verification": {
