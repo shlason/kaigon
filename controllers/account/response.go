@@ -19,6 +19,9 @@ const (
 	errCodeRequestPayloadTokenCodeFieldsNotValid    = "err-400-eptcfnv"
 	errMessageRequestPayloadTokenCodeFieldsNotValid = "auth token or code is not valid"
 
+	errCodeRequestPayloadVerificationTypeFieldNotValid    = "err-400-rpvtnv"
+	errMessageRequestPayloadVerificationTypeFieldNotValid = "verification type is not valid `[email]`"
+
 	errCodeRequestPayloadEmailFieldDatabaseRecordAlreadyExist    = "err-409-rpefdbrae"
 	errMessageRequestPayloadEmailFieldDatabaseRecordAlreadyExist = "email record already exist"
 )
