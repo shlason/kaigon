@@ -33,8 +33,16 @@ type database struct {
 	Redis    redisDbInfo
 }
 
+type smtp struct {
+	Sender   string
+	Password string
+	Host     string
+	Port     string
+}
+
 var Server = server{}
 var Database = database{}
+var Smtp = smtp{}
 
 func init() {
 	cfg, err := ini.Load("configs.ini")
@@ -72,5 +80,11 @@ func init() {
 			},
 			DB: redisDb,
 		},
+	}
+	Smtp = smtp{
+		Sender:   cfg.Section("smtp").Key("sender").String(),
+		Password: cfg.Section("smtp").Key("google_app_password").String(),
+		Host:     cfg.Section("smtp").Key("host").String(),
+		Port:     cfg.Section("smtp").Key("port").String(),
 	}
 }

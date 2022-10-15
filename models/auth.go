@@ -4,9 +4,40 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type JWTToken struct {
+	AccountUUID string
+	Email       string
+	jwt.StandardClaims
+}
+
+func (tk *JWTToken) Generate() {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, tk)
+	tokenString, err := token.SignedString([]byte("my_JWT_secret"))
+	fmt.Println("JWT: ", tokenString, "Error: ", err)
+}
+
+func ParseJWTToken(tk string) (*jwt.StandardClaims, error) {
+	jwtToken, err := jwt.ParseWithClaims(
+		tk,
+		&jwt.StandardClaims{},
+		func(token *jwt.Token) (i interface{}, e error) {
+			return []byte("my_JWT_secret"), nil
+		})
+	if err != nil || jwtToken == nil {
+		return nil, err
+	}
+
+	if claim, ok := jwtToken.Claims.(*jwt.StandardClaims); ok && jwtToken.Valid {
+		return claim, nil
+	}
+
+	return nil, err
+}
 
 type AuthCaptcha struct {
 	UUID string
@@ -15,7 +46,7 @@ type AuthCaptcha struct {
 
 func (ac *AuthCaptcha) Create() error {
 	ac.UUID = uuid.NewString()
-	return rdb.SetNX(rctx, fmt.Sprintf("auth:captcha:%s", ac.UUID), "captcahCode", 5*time.Minute).Err()
+	return rdb.SetNX(rctx, fmt.Sprintf("auth:captcha:%s", ac.UUID), ac.Code, 5*time.Minute).Err()
 }
 
 func (ac *AuthCaptcha) ReadByUUID() error {
@@ -25,7 +56,7 @@ func (ac *AuthCaptcha) ReadByUUID() error {
 }
 
 func (ac *AuthCaptcha) UpdateByUUID() error {
-	return rdb.Set(rctx, fmt.Sprintf("auth:captcha:%s", ac.UUID), "captcahCode", 5*time.Minute).Err()
+	return rdb.Set(rctx, fmt.Sprintf("auth:captcha:%s", ac.UUID), ac.Code, 5*time.Minute).Err()
 }
 
 func (ac *AuthCaptcha) Delete() error {
@@ -130,4 +161,8 @@ func (aarp *AuthAccountResetPassword) Update() error {
 
 func (aarp *AuthAccountResetPassword) Delete() error {
 	return rdb.Del(rctx, fmt.Sprintf("auth:account:reset:password:%s", aarp.AccountUUID)).Err()
+}
+
+func (aarp *AuthAccountResetPassword) IsMatch() bool {
+	return aarp.Result == fmt.Sprintf("%s/%s", aarp.Token, aarp.Code)
 }
