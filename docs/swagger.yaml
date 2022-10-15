@@ -30,7 +30,7 @@ info:
   title: Kaigon API
   version: "1.0"
 paths:
-  /account/:accountUUID/info/verification:
+  /account/{accountUUID}/info/verification:
     post:
       consumes:
       - application/json
@@ -87,7 +87,7 @@ paths:
       summary: 啟動驗證階段
       tags:
       - accounts
-  /account/:accountUUID/info/verification/email:
+  /account/{accountUUID}/info/verification/email:
     get:
       consumes:
       - application/json
@@ -344,7 +344,7 @@ paths:
       summary: 取得圖形驗證相關資訊
       tags:
       - auth
-  /auth/captcha/:captchaUUID/image:
+  /auth/captcha/{captchaUUID}/image:
     get:
       consumes:
       - application/json
@@ -369,7 +369,7 @@ paths:
       summary: 取得圖形驗證圖片
       tags:
       - auth
-  /auth/captcha/:captchaUUID/refresh:
+  /auth/captcha/{captchaUUID}/refresh:
     get:
       consumes:
       - application/json

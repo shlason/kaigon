@@ -55,7 +55,7 @@ func GetCaptchaInfo(c *gin.Context) {
 // @Param       captchaUUID path     string       true "Captcha Info"
 // @Success     200         {string} content-type "image/png"
 // @Failure     500         {object} controllers.JSONResponse
-// @Router      /auth/captcha/:captchaUUID/image [get]
+// @Router      /auth/captcha/{captchaUUID}/image [get]
 func GetCaptchaImage(c *gin.Context) {
 	requestParams := &getCaptchaImageRequestParamsPayload{}
 	requestParams.BindParams(c)
@@ -94,7 +94,7 @@ func GetCaptchaImage(c *gin.Context) {
 // @Param       captchaUUID path     string true "Captcha Info"
 // @Success     200         {object} controllers.JSONResponse
 // @Failure     500         {object} controllers.JSONResponse
-// @Router      /auth/captcha/:captchaUUID/refresh [get]
+// @Router      /auth/captcha/{captchaUUID}/refresh [get]
 func UpdateCaptchaInfo(c *gin.Context) {
 	requestParams := &updateCaptchaImageRequestParamsPayload{}
 	requestParams.BindParams(c)

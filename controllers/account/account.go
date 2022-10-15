@@ -199,7 +199,7 @@ func SignIn(c *gin.Context) {
 // @Failure     401         {object} controllers.JSONResponse
 // @Failure     403         {object} controllers.JSONResponse
 // @Failure     500         {object} controllers.JSONResponse
-// @Router      /account/:accountUUID/info/verification [post]
+// @Router      /account/{accountUUID}/info/verification [post]
 func CreateVerifySession(c *gin.Context) {
 	// TODO: routes 和 payload 要再檢查看看 改寫法
 	var requestPayload *createVerifySessionRequestPayload
@@ -267,7 +267,7 @@ func CreateVerifySession(c *gin.Context) {
 // @Success     200         {object} controllers.JSONResponse
 // @Failure     400         {object} controllers.JSONResponse
 // @Failure     500         {object} controllers.JSONResponse
-// @Router      /account/:accountUUID/info/verification/email [get]
+// @Router      /account/{accountUUID}/info/verification/email [get]
 func VerifyWithEmail(c *gin.Context) {
 	requestPayload := &verifyWithEmailRequestPayload{
 		AccountUUID: c.Param("accountUUID"),
