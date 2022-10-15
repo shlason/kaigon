@@ -49,11 +49,13 @@ func init() {
 	homeDir, err := os.UserHomeDir()
 
 	if err != nil {
-		fmt.Printf("Fail to get user home dir: %s", err)
+		fmt.Printf("Fail to get user home dir: %s\n", err)
 	}
 
 	cfg, err := ini.Load(filepath.Join(homeDir, os.Getenv("CONFIG_FILE_PATH_BASE_ON_HOME")))
-	fmt.Println(filepath.Join(homeDir, os.Getenv("CONFIG_FILE_PATH_BASE_ON_HOME")))
+
+	fmt.Println("Pr:", filepath.Join(homeDir, os.Getenv("CONFIG_FILE_PATH_BASE_ON_HOME")))
+
 	if err != nil {
 		fmt.Printf("Fail to read file: %v", err)
 		os.Exit(1)
