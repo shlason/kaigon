@@ -4,9 +4,40 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type JWTToken struct {
+	AccountUUID string
+	Email       string
+	jwt.StandardClaims
+}
+
+func (tk *JWTToken) Generate() {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, tk)
+	tokenString, err := token.SignedString([]byte("my_JWT_secret"))
+	fmt.Println("JWT: ", tokenString, "Error: ", err)
+}
+
+func ParseJWTToken(tk string) (*jwt.StandardClaims, error) {
+	jwtToken, err := jwt.ParseWithClaims(
+		tk,
+		&jwt.StandardClaims{},
+		func(token *jwt.Token) (i interface{}, e error) {
+			return []byte("my_JWT_secret"), nil
+		})
+	if err != nil || jwtToken == nil {
+		return nil, err
+	}
+
+	if claim, ok := jwtToken.Claims.(*jwt.StandardClaims); ok && jwtToken.Valid {
+		return claim, nil
+	}
+
+	return nil, err
+}
 
 type AuthCaptcha struct {
 	UUID string
