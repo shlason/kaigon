@@ -11,10 +11,10 @@ import (
 const passwordMaximumLength int = 32
 
 type signUpRequestPayload struct {
-	Email       string
-	Password    string
-	CaptchaUUID string
-	CaptchaCode string
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	CaptchaUUID string `json:"captchaUuid"`
+	CaptchaCode string `json:"captchaCode"`
 }
 
 func (p *signUpRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
@@ -46,10 +46,10 @@ func (p *signUpRequestPayload) check() (errResponse controllers.JSONResponse, is
 }
 
 type signInRequestPayload struct {
-	Email       string
-	Password    string
-	CaptchaUUID string
-	CaptchaCode string
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	CaptchaUUID string `json:"captchaUuid"`
+	CaptchaCode string `json:"captchaCode"`
 }
 
 func (p *signInRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
@@ -81,11 +81,11 @@ func (p *signInRequestPayload) check() (errResponse controllers.JSONResponse, is
 }
 
 type signInResponsePayload struct {
-	Token string
+	Token string `json:"token"`
 }
 
 type createResetPasswordSessionRequestPayload struct {
-	Email string
+	Email string `json:"email"`
 }
 
 func (p *createResetPasswordSessionRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
@@ -101,7 +101,7 @@ func (p *createResetPasswordSessionRequestPayload) check() (errResponse controll
 }
 
 type resetPasswordTemplateParams struct {
-	Link string
+	Link string `json:"link"`
 }
 
 func (p *resetPasswordTemplateParams) generate(accountUUID string) error {
@@ -118,12 +118,12 @@ func (p *resetPasswordTemplateParams) generate(accountUUID string) error {
 }
 
 type resetPasswordRequestPayload struct {
-	Email       string
-	Password    string
-	Token       string
-	Code        string
-	CaptchaUUID string
-	CaptchaCode string
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	Token       string `json:"token"`
+	Code        string `json:"code"`
+	CaptchaUUID string `json:"captchaUuid"`
+	CaptchaCode string `json:"captchaCode"`
 }
 
 func (p *resetPasswordRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
@@ -163,7 +163,7 @@ func (p *resetPasswordRequestPayload) check() (errResponse controllers.JSONRespo
 }
 
 type verificationSessionTemplateParams struct {
-	Link string
+	Link string `json:"link"`
 }
 
 func (p *verificationSessionTemplateParams) generate(accountUUID string) error {
@@ -180,9 +180,9 @@ func (p *verificationSessionTemplateParams) generate(accountUUID string) error {
 }
 
 type createVerifySessionRequestPayload struct {
-	AccountUUID string
-	Email       string
-	Type        string
+	AccountUUID string `json:"accountUuid"`
+	Email       string `json:"email"`
+	Type        string `json:"type"`
 }
 
 var acceptVerificationType = map[string]string{

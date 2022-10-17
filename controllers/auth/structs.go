@@ -3,11 +3,11 @@ package auth
 import "github.com/gin-gonic/gin"
 
 type getCaptchaInfoResponsePayload struct {
-	UUID string
+	UUID string `json:"uuid"`
 }
 
 type getCaptchaImageRequestParamsPayload struct {
-	CaptchaUUID string
+	CaptchaUUID string `json:"captchaUuid"`
 }
 
 func (p *getCaptchaImageRequestParamsPayload) BindParams(c *gin.Context) {
@@ -15,7 +15,7 @@ func (p *getCaptchaImageRequestParamsPayload) BindParams(c *gin.Context) {
 }
 
 type updateCaptchaImageRequestParamsPayload struct {
-	CaptchaUUID string
+	CaptchaUUID string `json:"captchaUuid"`
 }
 
 func (p *updateCaptchaImageRequestParamsPayload) BindParams(c *gin.Context) {

@@ -13,6 +13,20 @@ import (
 	"gorm.io/gorm"
 )
 
+// @Summary     註冊帳號
+// @Description 使用 Email, Password, Captcha Info 等資訊來註冊
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Param       email       body     string true "Account Email"
+// @Param       password    body     string true "Account Password"
+// @Param       captchaUuid body     string true "Captcha Info"
+// @Param       captchaCode body     string true "Captcha Info"
+// @Success     200         {object} controllers.JSONResponse
+// @Failure     400         {object} controllers.JSONResponse
+// @Failure     409         {object} controllers.JSONResponse
+// @Failure     500         {object} controllers.JSONResponse
+// @Router      /account/signup [post]
 func SignUp(c *gin.Context) {
 	var requestPayload *signUpRequestPayload
 	errResp, err := controllers.BindJSON(c, &requestPayload)
@@ -78,6 +92,19 @@ func SignUp(c *gin.Context) {
 	})
 }
 
+// @Summary     登入帳號
+// @Description 使用 Email, Password, Captcha Info 等資訊來登入
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Param       email       body     string true "Account Email"
+// @Param       password    body     string true "Account Password"
+// @Param       captchaUuid body     string true "Captcha Info"
+// @Param       captchaCode body     string true "Captcha Info"
+// @Success     200         {object} controllers.JSONResponse{data=signInResponsePayload}
+// @Failure     400         {object} controllers.JSONResponse
+// @Failure     500         {object} controllers.JSONResponse
+// @Router      /account/signin [post]
 func SignIn(c *gin.Context) {
 	var requestPayload *signInRequestPayload
 	errResp, err := controllers.BindJSON(c, &requestPayload)
@@ -157,7 +184,24 @@ func SignIn(c *gin.Context) {
 	})
 }
 
+// @Summary     啟動驗證階段
+// @Description 發送 Email 認證信
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       accountUUID path     string true "Account UUID"
+// @Param       accountUuid body     string true "Account UUID"
+// @Param       email       body     string true "Account Email"
+// @Param       type        body     string true "Verification type"
+// @Success     200         {object} controllers.JSONResponse
+// @Failure     400         {object} controllers.JSONResponse
+// @Failure     401         {object} controllers.JSONResponse
+// @Failure     403         {object} controllers.JSONResponse
+// @Failure     500         {object} controllers.JSONResponse
+// @Router      /account/{accountUUID}/info/verification [post]
 func CreateVerifySession(c *gin.Context) {
+	// TODO: routes 和 payload 要再檢查看看 改寫法
 	var requestPayload *createVerifySessionRequestPayload
 	errResponse, err := controllers.BindJSON(c, &requestPayload)
 	if err != nil {
@@ -212,6 +256,18 @@ func CreateVerifySession(c *gin.Context) {
 	})
 }
 
+// @Summary     Email 認證信中的認證連結
+// @Description 進行 Email 的認證
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Param       accountUUID path     string true "Account UUID"
+// @Param       token       query    string true "Session Token"
+// @Param       code        path     string true "Verify Code"
+// @Success     200         {object} controllers.JSONResponse
+// @Failure     400         {object} controllers.JSONResponse
+// @Failure     500         {object} controllers.JSONResponse
+// @Router      /account/{accountUUID}/info/verification/email [get]
 func VerifyWithEmail(c *gin.Context) {
 	requestPayload := &verifyWithEmailRequestPayload{
 		AccountUUID: c.Param("accountUUID"),
@@ -253,6 +309,16 @@ func VerifyWithEmail(c *gin.Context) {
 	})
 }
 
+// @Summary     啟動重設密碼階段 (忘記密碼時)
+// @Description 發送可以重設密碼的連結到指定 email 中
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Param       email body     string true "Account Email"
+// @Success     200   {object} controllers.JSONResponse
+// @Failure     400   {object} controllers.JSONResponse
+// @Failure     500   {object} controllers.JSONResponse
+// @Router      /account/info/password/reset [post]
 func CreateResetPasswordSession(c *gin.Context) {
 	var requestPayload *createResetPasswordSessionRequestPayload
 	errResponse, err := controllers.BindJSON(c, &requestPayload)
@@ -318,6 +384,21 @@ func CreateResetPasswordSession(c *gin.Context) {
 	})
 }
 
+// @Summary     強制重設密碼 (忘記密碼時)
+// @Description 強制重新設定密碼藉由 Token, Code 相關驗證資訊
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Param       email       body     string true "Account Email"
+// @Param       password    body     string true "Account New Password"
+// @Param       token       body     string true "Token"
+// @Param       code        body     string true "Verify Code"
+// @Param       captchaUuid body     string true "Captcha Info"
+// @Param       captchaCode body     string true "Captcha Info"
+// @Success     200         {object} controllers.JSONResponse
+// @Failure     400         {object} controllers.JSONResponse
+// @Failure     500         {object} controllers.JSONResponse
+// @Router      /account/info/password/reset [patch]
 func ResetPassword(c *gin.Context) {
 	var requestPayload *resetPasswordRequestPayload
 	errResp, err := controllers.BindJSON(c, &requestPayload)

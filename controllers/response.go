@@ -5,12 +5,17 @@ const (
 	SuccessCode    string = "success-200-s"
 )
 
+// All common error codes
 const (
-	// All common error codes
 	// 4XX
-	ErrCodeRequestContentTypeNotJSONFormat    string = "err-400-rctnjsonf"
-	ErrCodeRequestPayloadCaptchaFieldNotValid string = "err-400-rpcfnv"
-	ErrCodeRequestPermissionForbidden         string = "err-403-rpf"
+	ErrCodeRequestContentTypeNotJSONFormat string = "err-400-rctnjsonf"
+	ErrMessageContentTypeNotJSONFromat     string = "Content-Type is not JSON format"
+
+	ErrCodeRequestPayloadCaptchaFieldNotValid    string = "err-400-rpcfnv"
+	ErrMessageRequestPayloadCaptchaFieldNotValid string = "captcha not valid"
+
+	ErrCodeRequestPermissionForbidden    string = "err-403-rpf"
+	ErrMessageRequestPermissionForbidden string = "no permission to access"
 
 	// 5XX
 	ErrCodeServerGeneralFunctionGotError  string = "err-500-sgfge"
@@ -21,9 +26,4 @@ const (
 	ErrCodeServerRedisGetKeyGotError      string = "err-500-srgkge"
 	ErrCodeServerSendEmailGotError        string = "err-500-ssege"
 	ErrCodeServerGenerateJWTTokenGotError string = "err-500-sgjwttge"
-
-	// All common error message
-	ErrMessageContentTypeNotJSONFromat           string = "Content-Type is not JSON format"
-	ErrMessageRequestPayloadCaptchaFieldNotValid string = "captcha not valid"
-	ErrMessageRequestPermissionForbidden         string = "no permission to access"
 )

@@ -1,0 +1,402 @@
+basePath: /api
+definitions:
+  account.signInResponsePayload:
+    properties:
+      token:
+        type: string
+    type: object
+  auth.getCaptchaInfoResponsePayload:
+    properties:
+      uuid:
+        type: string
+    type: object
+  controllers.JSONResponse:
+    properties:
+      code:
+        type: string
+      data: {}
+      message: {}
+    type: object
+host: kaigon.sidesideeffect.io
+info:
+  contact:
+    email: nocvi111@gmail.com
+    name: API Support
+    url: https://github.com/shlason/kaigon
+  description: This is a forum server.
+  license:
+    name: MIT
+    url: https://github.com/shlason/kaigon/blob/main/LICENSE
+  title: Kaigon API
+  version: "1.0"
+paths:
+  /account/{accountUUID}/info/verification:
+    post:
+      consumes:
+      - application/json
+      description: 發送 Email 認證信
+      parameters:
+      - description: Account UUID
+        in: path
+        name: accountUUID
+        required: true
+        type: string
+      - description: Account UUID
+        in: body
+        name: accountUuid
+        required: true
+        schema:
+          type: string
+      - description: Account Email
+        in: body
+        name: email
+        required: true
+        schema:
+          type: string
+      - description: Verification type
+        in: body
+        name: type
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 啟動驗證階段
+      tags:
+      - accounts
+  /account/{accountUUID}/info/verification/email:
+    get:
+      consumes:
+      - application/json
+      description: 進行 Email 的認證
+      parameters:
+      - description: Account UUID
+        in: path
+        name: accountUUID
+        required: true
+        type: string
+      - description: Session Token
+        in: query
+        name: token
+        required: true
+        type: string
+      - description: Verify Code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: Email 認證信中的認證連結
+      tags:
+      - accounts
+  /account/info/password/reset:
+    patch:
+      consumes:
+      - application/json
+      description: 強制重新設定密碼藉由 Token, Code 相關驗證資訊
+      parameters:
+      - description: Account Email
+        in: body
+        name: email
+        required: true
+        schema:
+          type: string
+      - description: Account New Password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      - description: Token
+        in: body
+        name: token
+        required: true
+        schema:
+          type: string
+      - description: Verify Code
+        in: body
+        name: code
+        required: true
+        schema:
+          type: string
+      - description: Captcha Info
+        in: body
+        name: captchaUuid
+        required: true
+        schema:
+          type: string
+      - description: Captcha Info
+        in: body
+        name: captchaCode
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 強制重設密碼 (忘記密碼時)
+      tags:
+      - accounts
+    post:
+      consumes:
+      - application/json
+      description: 發送可以重設密碼的連結到指定 email 中
+      parameters:
+      - description: Account Email
+        in: body
+        name: email
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 啟動重設密碼階段 (忘記密碼時)
+      tags:
+      - accounts
+  /account/signin:
+    post:
+      consumes:
+      - application/json
+      description: 使用 Email, Password, Captcha Info 等資訊來登入
+      parameters:
+      - description: Account Email
+        in: body
+        name: email
+        required: true
+        schema:
+          type: string
+      - description: Account Password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      - description: Captcha Info
+        in: body
+        name: captchaUuid
+        required: true
+        schema:
+          type: string
+      - description: Captcha Info
+        in: body
+        name: captchaCode
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/account.signInResponsePayload'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 登入帳號
+      tags:
+      - accounts
+  /account/signup:
+    post:
+      consumes:
+      - application/json
+      description: 使用 Email, Password, Captcha Info 等資訊來註冊
+      parameters:
+      - description: Account Email
+        in: body
+        name: email
+        required: true
+        schema:
+          type: string
+      - description: Account Password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      - description: Captcha Info
+        in: body
+        name: captchaUuid
+        required: true
+        schema:
+          type: string
+      - description: Captcha Info
+        in: body
+        name: captchaCode
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 註冊帳號
+      tags:
+      - accounts
+  /auth/captcha:
+    get:
+      consumes:
+      - application/json
+      description: 取得圖形驗證動態產生的相對應 UUID 及驗證圖片
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/auth.getCaptchaInfoResponsePayload'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 取得圖形驗證相關資訊
+      tags:
+      - auth
+  /auth/captcha/{captchaUUID}/image:
+    get:
+      consumes:
+      - application/json
+      description: 取得與 UUID 相對應的驗證圖片
+      parameters:
+      - description: Captcha Info
+        in: path
+        name: captchaUUID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: image/png
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 取得圖形驗證圖片
+      tags:
+      - auth
+  /auth/captcha/{captchaUUID}/refresh:
+    get:
+      consumes:
+      - application/json
+      description: 刷新與 UUID 相對應的驗證圖片資訊及效期
+      parameters:
+      - description: Captcha Info
+        in: path
+        name: captchaUUID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 刷新圖形驗證
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
