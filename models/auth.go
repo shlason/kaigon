@@ -6,8 +6,36 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
+	"github.com/shlason/kaigon/controllers"
 	"golang.org/x/crypto/bcrypt"
 )
+
+// Redis
+type Session struct {
+	AccountUUID string
+	Email       string
+	Token       string
+}
+
+func (s *Session) Create() error {
+	s.Token = uuid.NewString()
+	return rdb.SetNX(
+		rctx,
+		fmt.Sprintf("auth:session:token:%s/%s", s.AccountUUID, s.Email),
+		s.Token,
+		time.Duration(controllers.RefreshTokenCookieInfo.MaxAge)*time.Second,
+	).Err()
+}
+
+func (s *Session) Read() error {
+	val, err := rdb.Get(rctx, fmt.Sprintf("auth:session:token:%s/%s", s.AccountUUID, s.Email)).Result()
+	s.Token = val
+	return err
+}
+
+func (s *Session) Delete() error {
+	return rdb.Del(rctx, fmt.Sprintf("auth:session:token:%s/%s", s.AccountUUID, s.Email)).Err()
+}
 
 type JWTToken struct {
 	AccountUUID string
@@ -16,6 +44,8 @@ type JWTToken struct {
 }
 
 func (tk *JWTToken) Generate() (string, error) {
+	ttl := 15 * time.Minute
+	tk.ExpiresAt = time.Now().UTC().Add(ttl).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, tk)
 	tokenString, err := token.SignedString([]byte("my_JWT_secret"))
 
@@ -40,6 +70,7 @@ func ParseJWTToken(tk string) (*JWTToken, error) {
 	return nil, err
 }
 
+// Redis
 type AuthCaptcha struct {
 	UUID string
 	Code string
@@ -64,6 +95,7 @@ func (ac *AuthCaptcha) Delete() error {
 	return rdb.Del(rctx, fmt.Sprintf("auth:captcha:%s", ac.UUID)).Err()
 }
 
+// Redis
 type AuthAccountEmailVerification struct {
 	AccountUUID string
 	Token       string
@@ -115,6 +147,7 @@ func (aaev *AuthAccountEmailVerification) IsMatch() bool {
 	return aaev.Result == fmt.Sprintf("%s/%s", aaev.Token, aaev.Code)
 }
 
+// Redis
 type AuthAccountResetPassword struct {
 	AccountUUID string
 	Token       string

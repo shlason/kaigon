@@ -4,17 +4,116 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
 	"github.com/shlason/kaigon/utils"
 )
 
+const captchaCodeLength int = 6
+
 func OAuthCallbackForGoogle(c *gin.Context) {
 
 }
 
-const captchaCodeLength int = 6
+func GetAuthTokenByRefreshToken(c *gin.Context) {
+	token, err := c.Cookie(controllers.RefreshTokenCookieInfo.Name)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, controllers.JSONResponse{
+			Code:    ErrCodeRequestHeaderCookieRefreshTokenFieldUnauthorized,
+			Message: ErrMessageRequestHeaderCookieRefreshTokenFieldUnauthorized,
+			Data:    nil,
+		})
+		return
+	}
+	requestParams := &getAuthTokenByRefreshTokenRequestParamsPayload{}
+	err = c.ShouldBindQuery(&requestParams)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    ErrCodeRequestQueryParamAccountUUIDFieldNotValid,
+			Message: ErrMessageRequestQueryParamAccountUUIDFieldNotValid,
+			Data:    nil,
+		})
+		return
+	}
+	errResp, isNotValid := requestParams.check()
+	if isNotValid {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+	session := models.Session{
+		AccountUUID: requestParams.AccountUUID,
+		Email:       requestParams.Email,
+	}
+	err = session.Read()
+	if err != nil {
+		if err == redis.Nil {
+			c.SetCookie(
+				controllers.RefreshTokenCookieInfo.Name,
+				"",
+				-1,
+				controllers.RefreshTokenCookieInfo.Path,
+				controllers.RefreshTokenCookieInfo.Domain,
+				controllers.RefreshTokenCookieInfo.Secure,
+				controllers.RefreshTokenCookieInfo.HttpOnly,
+			)
+			c.JSON(http.StatusUnauthorized, controllers.JSONResponse{
+				Code:    ErrCodeRequestHeaderCookieRefreshTokenFieldUnauthorized,
+				Message: ErrMessageRequestHeaderCookieRefreshTokenFieldUnauthorized,
+				Data:    nil,
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisGetKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+	if session.Token != token {
+		c.SetCookie(
+			controllers.RefreshTokenCookieInfo.Name,
+			"",
+			-1,
+			controllers.RefreshTokenCookieInfo.Path,
+			controllers.RefreshTokenCookieInfo.Domain,
+			controllers.RefreshTokenCookieInfo.Secure,
+			controllers.RefreshTokenCookieInfo.HttpOnly,
+		)
+		c.JSON(http.StatusUnauthorized, controllers.JSONResponse{
+			Code:    ErrCodeRequestHeaderCookieRefreshTokenFieldUnauthorized,
+			Message: ErrMessageRequestHeaderCookieRefreshTokenFieldUnauthorized,
+			Data:    nil,
+		})
+		return
+	}
+
+	jwtModel := &models.JWTToken{
+		AccountUUID: requestParams.AccountUUID,
+		Email:       requestParams.Email,
+	}
+
+	authToken, err := jwtModel.Generate()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGenerateJWTTokenGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data: getAuthTokenByRefreshTokenResponsePayload{
+			AuthToken: authToken,
+		},
+	})
+}
 
 // @Summary     取得圖形驗證相關資訊
 // @Description 取得圖形驗證動態產生的相對應 UUID 及驗證圖片

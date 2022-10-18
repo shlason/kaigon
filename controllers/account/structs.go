@@ -80,10 +80,6 @@ func (p *signInRequestPayload) check() (errResponse controllers.JSONResponse, is
 	return controllers.JSONResponse{}, false
 }
 
-type signInResponsePayload struct {
-	Token string `json:"token"`
-}
-
 type createResetPasswordSessionRequestPayload struct {
 	Email string `json:"email"`
 }
