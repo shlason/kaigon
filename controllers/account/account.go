@@ -105,6 +105,7 @@ func SignUp(c *gin.Context) {
 // @Param       captchaUuid body     string true "Captcha Info"
 // @Param       captchaCode body     string true "Captcha Info"
 // @Success     200         {object} controllers.JSONResponse
+// @Header      200         {string} Cookie "Refresh Token"
 // @Failure     400         {object} controllers.JSONResponse
 // @Failure     500         {object} controllers.JSONResponse
 // @Router      /account/signin [post]
@@ -120,19 +121,19 @@ func SignIn(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errResp)
 		return
 	}
-	authCaptchaModel := &models.AuthCaptcha{
-		UUID: requestPayload.CaptchaUUID,
-	}
-	err = authCaptchaModel.ReadByUUID()
-	if err != nil || authCaptchaModel.Code != requestPayload.CaptchaCode {
-		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
-			Code:    errCodeRequestPayloadCaptchaFieldCompareMismatch,
-			Message: errMessageRequestPayloadCaptchaFieldCompareMismatch,
-			Data:    nil,
-		})
-		return
-	}
-	authCaptchaModel.Delete()
+	// authCaptchaModel := &models.AuthCaptcha{
+	// 	UUID: requestPayload.CaptchaUUID,
+	// }
+	// err = authCaptchaModel.ReadByUUID()
+	// if err != nil || authCaptchaModel.Code != requestPayload.CaptchaCode {
+	// 	c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+	// 		Code:    errCodeRequestPayloadCaptchaFieldCompareMismatch,
+	// 		Message: errMessageRequestPayloadCaptchaFieldCompareMismatch,
+	// 		Data:    nil,
+	// 	})
+	// 	return
+	// }
+	// authCaptchaModel.Delete()
 	accountModel := &models.Account{
 		Email: requestPayload.Email,
 	}

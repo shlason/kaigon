@@ -1,10 +1,5 @@
 basePath: /api
 definitions:
-  account.signInResponsePayload:
-    properties:
-      token:
-        type: string
-    type: object
   auth.getCaptchaInfoResponsePayload:
     properties:
       uuid:
@@ -250,13 +245,12 @@ paths:
       responses:
         "200":
           description: OK
+          headers:
+            Cookie:
+              description: Refresh Token
+              type: string
           schema:
-            allOf:
-            - $ref: '#/definitions/controllers.JSONResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/account.signInResponsePayload'
-              type: object
+            $ref: '#/definitions/controllers.JSONResponse'
         "400":
           description: Bad Request
           schema:

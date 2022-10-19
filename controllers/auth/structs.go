@@ -7,8 +7,8 @@ import (
 )
 
 type getAuthTokenByRefreshTokenRequestParamsPayload struct {
-	AccountUUID string `json:"accountUuid"`
-	Email       string `json:"email"`
+	AccountUUID string `form:"accountUuid"`
+	Email       string `form:"email"`
 }
 
 func (p *getAuthTokenByRefreshTokenRequestParamsPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {

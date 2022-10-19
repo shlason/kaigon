@@ -214,19 +214,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/controllers.JSONResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/account.signInResponsePayload"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        },
+                        "headers": {
+                            "Cookie": {
+                                "type": "string",
+                                "description": "Refresh Token"
+                            }
                         }
                     },
                     "400": {
@@ -588,14 +582,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "account.signInResponsePayload": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "auth.getCaptchaInfoResponsePayload": {
             "type": "object",
             "properties": {
