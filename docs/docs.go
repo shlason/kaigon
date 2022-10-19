@@ -46,6 +46,15 @@ const docTemplate = `{
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "description": "Front End Reset Password URL's Path",
+                        "name": "path",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -344,15 +353,6 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Account UUID",
-                        "name": "accountUuid",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
                         "description": "Account Email",
                         "name": "email",
                         "in": "body",
@@ -437,16 +437,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Verify Code",
                         "name": "code",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/controllers.JSONResponse"
-                        }
+                    "301": {
+                        "description": "Moved Permanently"
                     },
                     "400": {
                         "description": "Bad Request",

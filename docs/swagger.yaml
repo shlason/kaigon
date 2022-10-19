@@ -36,12 +36,6 @@ paths:
         name: accountUUID
         required: true
         type: string
-      - description: Account UUID
-        in: body
-        name: accountUuid
-        required: true
-        schema:
-          type: string
       - description: Account Email
         in: body
         name: email
@@ -99,17 +93,15 @@ paths:
         required: true
         type: string
       - description: Verify Code
-        in: path
+        in: query
         name: code
         required: true
         type: string
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/controllers.JSONResponse'
+        "301":
+          description: Moved Permanently
         "400":
           description: Bad Request
           schema:
@@ -189,6 +181,12 @@ paths:
       - description: Account Email
         in: body
         name: email
+        required: true
+        schema:
+          type: string
+      - description: Front End Reset Password URL's Path
+        in: body
+        name: path
         required: true
         schema:
           type: string
