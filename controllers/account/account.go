@@ -87,7 +87,8 @@ func SignUp(c *gin.Context) {
 		})
 		return
 	}
-	// utils.SendEmail([]string{requestPayload.Email}, "[Kaigon]：恭喜您註冊成功", "signup_success.html", struct{}{})
+
+	utils.SendEmail([]string{requestPayload.Email}, "[Kaigon]：恭喜您註冊成功", "signup_success.html", struct{}{})
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
