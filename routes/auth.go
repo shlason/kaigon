@@ -9,6 +9,9 @@ func RegisteAuthRoutes(publicR *gin.RouterGroup) {
 	// OAuth callback
 	publicR.GET("/auth/o/google/callback", auth.OAuthCallbackForGoogle)
 
+	// Session
+	publicR.GET("/auth/session/token/refresh", auth.GetAuthTokenByRefreshToken)
+
 	// Captcha
 	publicR.GET("/auth/captcha", auth.GetCaptchaInfo)
 	publicR.GET("/auth/captcha/:captchaUUID/image", auth.GetCaptchaImage)

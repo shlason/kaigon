@@ -2,10 +2,13 @@ package account
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
+	"github.com/shlason/kaigon/configs"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
 	"github.com/shlason/kaigon/utils"
@@ -101,7 +104,7 @@ func SignUp(c *gin.Context) {
 // @Param       password    body     string true "Account Password"
 // @Param       captchaUuid body     string true "Captcha Info"
 // @Param       captchaCode body     string true "Captcha Info"
-// @Success     200         {object} controllers.JSONResponse{data=signInResponsePayload}
+// @Success     200         {object} controllers.JSONResponse
 // @Failure     400         {object} controllers.JSONResponse
 // @Failure     500         {object} controllers.JSONResponse
 // @Router      /account/signin [post]
@@ -159,28 +162,42 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	jwtModel := &models.JWTToken{
+	session := &models.Session{
 		AccountUUID: accountModel.UUID,
 		Email:       accountModel.Email,
 	}
-
-	token, err := jwtModel.Generate()
-
-	if err != nil {
+	err = session.Read()
+	if !(err == nil || err == redis.Nil) {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
-			Code:    controllers.ErrCodeServerGenerateJWTTokenGotError,
+			Code:    controllers.ErrCodeServerRedisGetKeyGotError,
 			Message: err,
 			Data:    nil,
 		})
 		return
 	}
-
+	if err == redis.Nil {
+		if session.Create() != nil {
+			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+				Code:    controllers.ErrCodeServerRedisSetNXKeyGotError,
+				Message: err,
+				Data:    nil,
+			})
+			return
+		}
+	}
+	c.SetCookie(
+		controllers.RefreshTokenCookieInfo.Name,
+		session.Token,
+		controllers.RefreshTokenCookieInfo.MaxAge,
+		controllers.RefreshTokenCookieInfo.Path,
+		controllers.RefreshTokenCookieInfo.Domain,
+		controllers.RefreshTokenCookieInfo.Secure,
+		controllers.RefreshTokenCookieInfo.HttpOnly,
+	)
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
-		Data: signInResponsePayload{
-			Token: token,
-		},
+		Data:    nil,
 	})
 }
 
@@ -201,7 +218,7 @@ func SignIn(c *gin.Context) {
 // @Failure     500         {object} controllers.JSONResponse
 // @Router      /account/{accountUUID}/info/verification [post]
 func CreateVerifySession(c *gin.Context) {
-	// TODO: routes 和 payload 要再檢查看看 改寫法
+	// TODO: Docs
 	var requestPayload *createVerifySessionRequestPayload
 	errResponse, err := controllers.BindJSON(c, &requestPayload)
 	if err != nil {
@@ -269,6 +286,7 @@ func CreateVerifySession(c *gin.Context) {
 // @Failure     500         {object} controllers.JSONResponse
 // @Router      /account/{accountUUID}/info/verification/email [get]
 func VerifyWithEmail(c *gin.Context) {
+	// TODO: Docs
 	requestPayload := &verifyWithEmailRequestPayload{
 		AccountUUID: c.Param("accountUUID"),
 		Token:       c.Query("token"),
@@ -301,12 +319,7 @@ func VerifyWithEmail(c *gin.Context) {
 		return
 	}
 
-	// TODO: 之後加上 redirect uri
-	c.JSON(http.StatusOK, controllers.JSONResponse{
-		Code:    controllers.SuccessCode,
-		Message: controllers.SuccessMessage,
-		Data:    nil,
-	})
+	c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s://%s", configs.Server.Protocol, configs.Server.Host))
 }
 
 // @Summary     啟動重設密碼階段 (忘記密碼時)
@@ -320,6 +333,7 @@ func VerifyWithEmail(c *gin.Context) {
 // @Failure     500   {object} controllers.JSONResponse
 // @Router      /account/info/password/reset [post]
 func CreateResetPasswordSession(c *gin.Context) {
+	// TODO: Docs
 	var requestPayload *createResetPasswordSessionRequestPayload
 	errResponse, err := controllers.BindJSON(c, &requestPayload)
 	if err != nil {
@@ -355,7 +369,7 @@ func CreateResetPasswordSession(c *gin.Context) {
 		requestPayload.Email,
 	}
 	templatParams := &resetPasswordTemplateParams{}
-	err = templatParams.generate(accountModel.UUID)
+	err = templatParams.generate(accountModel.UUID, requestPayload.Email, requestPayload.Path)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
