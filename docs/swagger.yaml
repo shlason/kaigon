@@ -1,5 +1,10 @@
 basePath: /api
 definitions:
+  auth.getAuthTokenByRefreshTokenResponsePayload:
+    properties:
+      authToken:
+        type: string
+    type: object
   auth.getCaptchaInfoResponsePayload:
     properties:
       uuid:
@@ -384,6 +389,49 @@ paths:
           schema:
             $ref: '#/definitions/controllers.JSONResponse'
       summary: 刷新圖形驗證
+      tags:
+      - auth
+  /auth/session/token/refresh:
+    get:
+      consumes:
+      - application/json
+      description: 使用 Cookie 中的 REFRESH_TOKEN field 來獲取 authToken
+      parameters:
+      - description: Account UUID
+        in: query
+        name: accountUuid
+        required: true
+        type: string
+      - description: Account Email
+        in: query
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/auth.getAuthTokenByRefreshTokenResponsePayload'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 取得 authToken
       tags:
       - auth
 securityDefinitions:

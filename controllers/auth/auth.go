@@ -17,6 +17,18 @@ func OAuthCallbackForGoogle(c *gin.Context) {
 
 }
 
+// @Summary     取得 authToken
+// @Description 使用 Cookie 中的 REFRESH_TOKEN field 來獲取 authToken
+// @Tags        auth
+// @Accept      json
+// @Produce     json
+// @Param       accountUuid query    string true "Account UUID"
+// @Param       email       query    string true "Account Email"
+// @Success     200         {object} controllers.JSONResponse{data=getAuthTokenByRefreshTokenResponsePayload}
+// @Failure     400         {object} controllers.JSONResponse
+// @Failure     401         {object} controllers.JSONResponse
+// @Failure     500         {object} controllers.JSONResponse
+// @Router      /auth/session/token/refresh [get]
 func GetAuthTokenByRefreshToken(c *gin.Context) {
 	token, err := c.Cookie(controllers.RefreshTokenCookieInfo.Name)
 	if err != nil {
