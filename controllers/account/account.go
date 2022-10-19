@@ -121,19 +121,19 @@ func SignIn(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errResp)
 		return
 	}
-	// authCaptchaModel := &models.AuthCaptcha{
-	// 	UUID: requestPayload.CaptchaUUID,
-	// }
-	// err = authCaptchaModel.ReadByUUID()
-	// if err != nil || authCaptchaModel.Code != requestPayload.CaptchaCode {
-	// 	c.JSON(http.StatusBadRequest, controllers.JSONResponse{
-	// 		Code:    errCodeRequestPayloadCaptchaFieldCompareMismatch,
-	// 		Message: errMessageRequestPayloadCaptchaFieldCompareMismatch,
-	// 		Data:    nil,
-	// 	})
-	// 	return
-	// }
-	// authCaptchaModel.Delete()
+	authCaptchaModel := &models.AuthCaptcha{
+		UUID: requestPayload.CaptchaUUID,
+	}
+	err = authCaptchaModel.ReadByUUID()
+	if err != nil || authCaptchaModel.Code != requestPayload.CaptchaCode {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    errCodeRequestPayloadCaptchaFieldCompareMismatch,
+			Message: errMessageRequestPayloadCaptchaFieldCompareMismatch,
+			Data:    nil,
+		})
+		return
+	}
+	authCaptchaModel.Delete()
 	accountModel := &models.Account{
 		Email: requestPayload.Email,
 	}
@@ -209,7 +209,6 @@ func SignIn(c *gin.Context) {
 // @Produce     json
 // @Security    ApiKeyAuth
 // @Param       accountUUID path     string true "Account UUID"
-// @Param       accountUuid body     string true "Account UUID"
 // @Param       email       body     string true "Account Email"
 // @Param       type        body     string true "Verification type"
 // @Success     200         {object} controllers.JSONResponse
@@ -219,7 +218,6 @@ func SignIn(c *gin.Context) {
 // @Failure     500         {object} controllers.JSONResponse
 // @Router      /account/{accountUUID}/info/verification [post]
 func CreateVerifySession(c *gin.Context) {
-	// TODO: Docs
 	var requestPayload *createVerifySessionRequestPayload
 	errResponse, err := controllers.BindJSON(c, &requestPayload)
 	if err != nil {
@@ -279,12 +277,12 @@ func CreateVerifySession(c *gin.Context) {
 // @Tags        accounts
 // @Accept      json
 // @Produce     json
-// @Param       accountUUID path     string true "Account UUID"
-// @Param       token       query    string true "Session Token"
-// @Param       code        path     string true "Verify Code"
-// @Success     200         {object} controllers.JSONResponse
-// @Failure     400         {object} controllers.JSONResponse
-// @Failure     500         {object} controllers.JSONResponse
+// @Param       accountUUID path  string true "Account UUID"
+// @Param       token       query string true "Session Token"
+// @Param       code        query string true "Verify Code"
+// @Success     301
+// @Failure     400 {object} controllers.JSONResponse
+// @Failure     500 {object} controllers.JSONResponse
 // @Router      /account/{accountUUID}/info/verification/email [get]
 func VerifyWithEmail(c *gin.Context) {
 	// TODO: Docs
@@ -329,12 +327,12 @@ func VerifyWithEmail(c *gin.Context) {
 // @Accept      json
 // @Produce     json
 // @Param       email body     string true "Account Email"
+// @Param       path  body     string true "Front End Reset Password URL's Path"
 // @Success     200   {object} controllers.JSONResponse
 // @Failure     400   {object} controllers.JSONResponse
 // @Failure     500   {object} controllers.JSONResponse
 // @Router      /account/info/password/reset [post]
 func CreateResetPasswordSession(c *gin.Context) {
-	// TODO: Docs
 	var requestPayload *createResetPasswordSessionRequestPayload
 	errResponse, err := controllers.BindJSON(c, &requestPayload)
 	if err != nil {
