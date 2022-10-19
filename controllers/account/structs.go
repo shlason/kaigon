@@ -193,9 +193,8 @@ func (p *verificationSessionTemplateParams) generate(accountUUID string) error {
 }
 
 type createVerifySessionRequestPayload struct {
-	AccountUUID string `json:"accountUuid"`
-	Email       string `json:"email"`
-	Type        string `json:"type"`
+	Email string `json:"email"`
+	Type  string `json:"type"`
 }
 
 var acceptVerificationType = map[string]string{

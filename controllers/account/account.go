@@ -218,7 +218,7 @@ func SignIn(c *gin.Context) {
 // @Failure     500         {object} controllers.JSONResponse
 // @Router      /account/{accountUUID}/info/verification [post]
 func CreateVerifySession(c *gin.Context) {
-	// TODO: routes 和 payload 要再檢查看看 改寫法
+	// TODO: Docs
 	var requestPayload *createVerifySessionRequestPayload
 	errResponse, err := controllers.BindJSON(c, &requestPayload)
 	if err != nil {
