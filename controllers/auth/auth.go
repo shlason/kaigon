@@ -27,8 +27,8 @@ func GetAuthTokenByRefreshToken(c *gin.Context) {
 		})
 		return
 	}
-	requestParams := &getAuthTokenByRefreshTokenRequestParamsPayload{}
-	err = c.ShouldBindQuery(&requestParams)
+	requestParams := getAuthTokenByRefreshTokenRequestParamsPayload{}
+	err = c.BindQuery(&requestParams)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
 			Code:    ErrCodeRequestQueryParamAccountUUIDFieldNotValid,
