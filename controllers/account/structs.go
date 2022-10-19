@@ -3,6 +3,7 @@ package account
 import (
 	"fmt"
 
+	"github.com/shlason/kaigon/configs"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
 	"github.com/shlason/kaigon/utils"
@@ -82,6 +83,7 @@ func (p *signInRequestPayload) check() (errResponse controllers.JSONResponse, is
 
 type createResetPasswordSessionRequestPayload struct {
 	Email string `json:"email"`
+	Path  string `json:"path"`
 }
 
 func (p *createResetPasswordSessionRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
@@ -100,7 +102,7 @@ type resetPasswordTemplateParams struct {
 	Link string `json:"link"`
 }
 
-func (p *resetPasswordTemplateParams) generate(accountUUID string) error {
+func (p *resetPasswordTemplateParams) generate(accountUUID, email, path string) error {
 	authAccountResetPasswordModel := &models.AuthAccountResetPassword{
 		AccountUUID: accountUUID,
 	}
@@ -108,7 +110,15 @@ func (p *resetPasswordTemplateParams) generate(accountUUID string) error {
 	if err != nil {
 		return err
 	}
-	p.Link = fmt.Sprintf("{{ResetPasswordPageURL}}?token=%s&code=%s", authAccountResetPasswordModel.Token, authAccountResetPasswordModel.Code)
+	p.Link = fmt.Sprintf(
+		"%s://%s%s?email=%s&token=%s&code=%s",
+		configs.Server.Protocol,
+		configs.Server.Host,
+		path,
+		email,
+		authAccountResetPasswordModel.Token,
+		authAccountResetPasswordModel.Code,
+	)
 
 	return nil
 }
@@ -170,7 +180,14 @@ func (p *verificationSessionTemplateParams) generate(accountUUID string) error {
 	if err != nil {
 		return err
 	}
-	p.Link = fmt.Sprintf("{{emailVerificationURL}}?token=%s&code=%s", authAccountEmailVerificationModel.Token, authAccountEmailVerificationModel.Code)
+	p.Link = fmt.Sprintf(
+		"%s://%s/account/%s/info/verification/email?token=%s&code=%s",
+		configs.Server.Protocol,
+		configs.Server.Host,
+		accountUUID,
+		authAccountEmailVerificationModel.Token,
+		authAccountEmailVerificationModel.Code,
+	)
 
 	return nil
 }
