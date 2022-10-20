@@ -121,7 +121,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		})
 		return
 	}
-
+	fmt.Println(accessTokenResp)
 	req.Header.Add("Authorization", fmt.Sprintf("%s %s", accessTokenResp.TokenType, accessTokenResp.AccessToken))
 	fresp, err := client.Do(req)
 
