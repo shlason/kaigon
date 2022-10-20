@@ -98,6 +98,55 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		return
 	}
 
+	accessTokenResp := googleOAuthAccessTokenResponsePayload{}
+	err = json.Unmarshal(body, &accessTokenResp)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "https://www.googleapis.com/drive/v2/files", nil)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	req.Header.Add("Authorization", fmt.Sprintf("%s %s", accessTokenResp.TokenType, accessTokenResp.AccessToken))
+	fresp, err := client.Do(req)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    ErrCodeRequestOAuthAccessTokenGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	defer fresp.Body.Close()
+
+	body, err = ioutil.ReadAll(fresp.Body)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
 	fmt.Println(string(body))
 }
 

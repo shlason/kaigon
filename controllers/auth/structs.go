@@ -31,6 +31,11 @@ type getOAuthUrlResponsePayload struct {
 	URL string `json:"url"`
 }
 
+type googleOAuthAccessTokenResponsePayload struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+}
+
 type getAuthTokenByRefreshTokenRequestParamsPayload struct {
 	AccountUUID string `form:"accountUuid"`
 	Email       string `form:"email"`
