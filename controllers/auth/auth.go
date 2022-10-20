@@ -97,7 +97,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		})
 		return
 	}
-
+	fmt.Println(string(body))
 	accessTokenResp := googleOAuthAccessTokenResponsePayload{}
 	err = json.Unmarshal(body, &accessTokenResp)
 
