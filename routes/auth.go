@@ -7,7 +7,9 @@ import (
 
 func RegisteAuthRoutes(publicR *gin.RouterGroup) {
 	// OAuth callback
-	publicR.GET("/auth/o/google/callback", auth.OAuthCallbackForGoogle)
+	publicR.GET("/auth/o/google/url", auth.OAuthCallbackForGoogle)
+	publicR.GET("/auth/o/google/login", auth.OAuthCallbackForGoogle)
+	publicR.GET("/auth/o/google/bind", auth.OAuthCallbackForGoogle)
 
 	// Session
 	publicR.GET("/auth/session/token/refresh", auth.GetAuthTokenByRefreshToken)
