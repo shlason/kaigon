@@ -1,11 +1,13 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
+	"github.com/shlason/kaigon/configs"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
 	"github.com/shlason/kaigon/utils"
@@ -13,7 +15,41 @@ import (
 
 const captchaCodeLength int = 6
 
-func OAuthCallbackForGoogle(c *gin.Context) {
+func GetGoogleOAuthURL(c *gin.Context) {
+	var requestParams *getOAuthUrlQueryParmas
+
+	err := c.ShouldBindQuery(&requestParams)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestQueryParamsNotValid,
+			Message: controllers.ErrMessageRequestQueryParamsNotValid,
+			Data:    nil,
+		})
+		return
+	}
+
+	errResp, isNotValid := requestParams.check()
+
+	if isNotValid {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data: getOAuthUrlResponsePayload{
+			URL: fmt.Sprintf(
+				"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=https://www.googleapis.com/auth/userinfo.profile",
+				configs.OAuth.Google.ClientID,
+				fmt.Sprintf("%s://%s/api/auth/o/google/%s", configs.Server.Protocol, configs.Server.Host, requestParams.Type),
+			),
+		},
+	})
+}
+
+func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 
 }
 
@@ -43,8 +79,8 @@ func GetAuthTokenByRefreshToken(c *gin.Context) {
 	err = c.BindQuery(&requestParams)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
-			Code:    ErrCodeRequestQueryParamAccountUUIDFieldNotValid,
-			Message: ErrMessageRequestQueryParamAccountUUIDFieldNotValid,
+			Code:    ErrCodeRequestQueryParamsAccountUUIDFieldNotValid,
+			Message: ErrMessageRequestQueryParamsAccountUUIDFieldNotValid,
 			Data:    nil,
 		})
 		return

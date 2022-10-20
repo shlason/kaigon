@@ -11,6 +11,9 @@ const (
 	ErrCodeRequestContentTypeNotJSONFormat string = "err-400-rctnjsonf"
 	ErrMessageContentTypeNotJSONFromat     string = "Content-Type is not JSON format"
 
+	ErrCodeRequestQueryParamsNotValid    string = "err-400-rqpnv"
+	ErrMessageRequestQueryParamsNotValid string = "request query params is not valid"
+
 	ErrCodeRequestPayloadCaptchaFieldNotValid    string = "err-400-rpcfnv"
 	ErrMessageRequestPayloadCaptchaFieldNotValid string = "captcha not valid"
 
