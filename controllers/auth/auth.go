@@ -97,7 +97,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println(string(body))
+
 	accessTokenResp := googleOAuthAccessTokenResponsePayload{}
 	err = json.Unmarshal(body, &accessTokenResp)
 
@@ -111,7 +111,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://www.googleapis.com/drive/v2/files", nil)
+	req, err := http.NewRequest("GET", "https://www.googleapis.com/oauth2/v1/userinfo", nil)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
@@ -121,7 +121,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println(accessTokenResp)
+
 	req.Header.Add("Authorization", fmt.Sprintf("%s %s", accessTokenResp.TokenType, accessTokenResp.AccessToken))
 	fresp, err := client.Do(req)
 
