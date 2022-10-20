@@ -12,4 +12,6 @@ const (
 
 	ErrCodeRequestHeaderCookieRefreshTokenFieldUnauthorized    string = "err-401-rhcrtfu"
 	ErrMessageRequestHeaderCookieRefreshTokenFieldUnauthorized string = "refresh token unauthorized, expired or undefined"
+
+	ErrCodeRequestOAuthAccessTokenGotError string = "err-500-roatge"
 )

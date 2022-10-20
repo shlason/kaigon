@@ -1,11 +1,14 @@
 package auth
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/shlason/kaigon/configs"
 	"github.com/shlason/kaigon/controllers"
@@ -15,6 +18,7 @@ import (
 
 const captchaCodeLength int = 6
 
+// TODO: Doc
 func GetGoogleOAuthURL(c *gin.Context) {
 	var requestParams *getOAuthUrlQueryParmas
 
@@ -49,8 +53,52 @@ func GetGoogleOAuthURL(c *gin.Context) {
 	})
 }
 
+// TODO: Doc
 func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
+	requestPayload, err := json.Marshal(map[string]string{
+		"client_id":     configs.OAuth.Google.ClientID,
+		"client_secret": configs.OAuth.Google.ClientSecret,
+		"code":          c.Query("code"),
+		"redirect_uri":  fmt.Sprintf("%s://%s/api/auth/o/google/login", configs.Server.Protocol, configs.Server.Host),
+		"grant_type":    "authorization_code",
+	})
 
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	responseBody := bytes.NewBuffer(requestPayload)
+
+	resp, err := http.Post("https://oauth2.googleapis.com/token", "application/json", responseBody)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    ErrCodeRequestOAuthAccessTokenGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	fmt.Println(string(body))
 }
 
 // @Summary     取得 authToken
