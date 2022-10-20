@@ -45,7 +45,7 @@ func GetGoogleOAuthURL(c *gin.Context) {
 		Message: controllers.SuccessMessage,
 		Data: getOAuthUrlResponsePayload{
 			URL: fmt.Sprintf(
-				"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=https://www.googleapis.com/auth/userinfo.profile",
+				"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=https://www.googleapis.com/auth/userinfo.email",
 				configs.OAuth.Google.ClientID,
 				fmt.Sprintf("%s://%s/api/auth/o/google/%s", configs.Server.Protocol, configs.Server.Host, requestParams.Type),
 			),
