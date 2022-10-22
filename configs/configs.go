@@ -41,9 +41,19 @@ type smtp struct {
 	Port     string
 }
 
-var Server = server{}
-var Database = database{}
-var Smtp = smtp{}
+type oauthInfo struct {
+	ClientID     string
+	ClientSecret string
+}
+
+type oauth struct {
+	Google oauthInfo
+}
+
+var Server server
+var Database database
+var Smtp smtp
+var OAuth oauth
 
 func init() {
 	homeDir, err := os.UserHomeDir()
@@ -95,5 +105,11 @@ func init() {
 		Password: cfg.Section("smtp").Key("google_app_password").String(),
 		Host:     cfg.Section("smtp").Key("host").String(),
 		Port:     cfg.Section("smtp").Key("port").String(),
+	}
+	OAuth = oauth{
+		Google: oauthInfo{
+			ClientID:     cfg.Section("oauth.google").Key("client_id").String(),
+			ClientSecret: cfg.Section("oauth.google").Key("client_secret").String(),
+		},
 	}
 }

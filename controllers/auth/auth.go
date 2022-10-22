@@ -1,11 +1,16 @@
 package auth
 
 import (
+	"bytes"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"github.com/goccy/go-json"
 	"github.com/google/uuid"
+	"github.com/shlason/kaigon/configs"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
 	"github.com/shlason/kaigon/utils"
@@ -13,8 +18,136 @@ import (
 
 const captchaCodeLength int = 6
 
-func OAuthCallbackForGoogle(c *gin.Context) {
+// TODO: Doc
+func GetGoogleOAuthURL(c *gin.Context) {
+	var requestParams *getOAuthUrlQueryParmas
 
+	err := c.ShouldBindQuery(&requestParams)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestQueryParamsNotValid,
+			Message: controllers.ErrMessageRequestQueryParamsNotValid,
+			Data:    nil,
+		})
+		return
+	}
+
+	errResp, isNotValid := requestParams.check()
+
+	if isNotValid {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data: getOAuthUrlResponsePayload{
+			URL: fmt.Sprintf(
+				"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=https://www.googleapis.com/auth/userinfo.email",
+				configs.OAuth.Google.ClientID,
+				fmt.Sprintf("%s://%s/api/auth/o/google/%s", configs.Server.Protocol, configs.Server.Host, requestParams.Type),
+			),
+		},
+	})
+}
+
+// TODO: Doc
+func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
+	requestPayload, err := json.Marshal(map[string]string{
+		"client_id":     configs.OAuth.Google.ClientID,
+		"client_secret": configs.OAuth.Google.ClientSecret,
+		"code":          c.Query("code"),
+		"redirect_uri":  fmt.Sprintf("%s://%s/api/auth/o/google/login", configs.Server.Protocol, configs.Server.Host),
+		"grant_type":    "authorization_code",
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	responseBody := bytes.NewBuffer(requestPayload)
+
+	resp, err := http.Post("https://oauth2.googleapis.com/token", "application/json", responseBody)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    ErrCodeRequestOAuthAccessTokenGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	accessTokenResp := googleOAuthAccessTokenResponsePayload{}
+	err = json.Unmarshal(body, &accessTokenResp)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "https://www.googleapis.com/oauth2/v1/userinfo", nil)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	req.Header.Add("Authorization", fmt.Sprintf("%s %s", accessTokenResp.TokenType, accessTokenResp.AccessToken))
+	fresp, err := client.Do(req)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    ErrCodeRequestOAuthAccessTokenGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	defer fresp.Body.Close()
+
+	body, err = ioutil.ReadAll(fresp.Body)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	fmt.Println(string(body))
 }
 
 // @Summary     取得 authToken
@@ -43,8 +176,8 @@ func GetAuthTokenByRefreshToken(c *gin.Context) {
 	err = c.BindQuery(&requestParams)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
-			Code:    ErrCodeRequestQueryParamAccountUUIDFieldNotValid,
-			Message: ErrMessageRequestQueryParamAccountUUIDFieldNotValid,
+			Code:    ErrCodeRequestQueryParamsAccountUUIDFieldNotValid,
+			Message: ErrMessageRequestQueryParamsAccountUUIDFieldNotValid,
 			Data:    nil,
 		})
 		return

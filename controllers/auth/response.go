@@ -1,12 +1,17 @@
 package auth
 
 const (
-	ErrCodeRequestQueryParamAccountUUIDFieldNotValid    string = "err-400-rqpaufnv"
-	ErrMessageRequestQueryParamAccountUUIDFieldNotValid string = "query string 'accountUuid' in not valid"
+	ErrCodeRequestQueryParamsAccountUUIDFieldNotValid    string = "err-400-rqpaufnv"
+	ErrMessageRequestQueryParamsAccountUUIDFieldNotValid string = "query string 'accountUuid' in not valid"
+
+	ErrCodeRequestQueryParamsOAuthURLTypeFieldNotValid    string = "err-400-rqpoutfnv"
+	ErrMessageRequestQueryParamsOAuthURLTypeFieldNotValid string = "query string 'type' in not valid ('login' or 'bind')"
 
 	ErrCodeRequestQueryParamEmailFieldNotValid    string = "err-400-rqpefnv"
 	ErrMessageRequestQueryParamEmailFieldNotValid string = "query string 'email' in not valid"
 
 	ErrCodeRequestHeaderCookieRefreshTokenFieldUnauthorized    string = "err-401-rhcrtfu"
 	ErrMessageRequestHeaderCookieRefreshTokenFieldUnauthorized string = "refresh token unauthorized, expired or undefined"
+
+	ErrCodeRequestOAuthAccessTokenGotError string = "err-500-roatge"
 )

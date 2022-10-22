@@ -6,6 +6,36 @@ import (
 	"github.com/shlason/kaigon/utils"
 )
 
+type getOAuthUrlQueryParmas struct {
+	Type string `form:"type"`
+}
+
+func (p *getOAuthUrlQueryParmas) check() (errResponse controllers.JSONResponse, isNotValid bool) {
+	var acceptOAuthUrlType = map[string]string{
+		"login": "login",
+		"bind":  "bind",
+	}
+
+	if _, ok := acceptOAuthUrlType[p.Type]; !ok {
+		return controllers.JSONResponse{
+			Code:    ErrCodeRequestQueryParamsOAuthURLTypeFieldNotValid,
+			Message: ErrMessageRequestQueryParamsOAuthURLTypeFieldNotValid,
+			Data:    nil,
+		}, true
+	}
+
+	return controllers.JSONResponse{}, false
+}
+
+type getOAuthUrlResponsePayload struct {
+	URL string `json:"url"`
+}
+
+type googleOAuthAccessTokenResponsePayload struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+}
+
 type getAuthTokenByRefreshTokenRequestParamsPayload struct {
 	AccountUUID string `form:"accountUuid"`
 	Email       string `form:"email"`

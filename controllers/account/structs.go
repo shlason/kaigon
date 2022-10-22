@@ -197,11 +197,11 @@ type createVerifySessionRequestPayload struct {
 	Type  string `json:"type"`
 }
 
-var acceptVerificationType = map[string]string{
-	"email": "email",
-}
-
 func (p *createVerifySessionRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
+	var acceptVerificationType = map[string]string{
+		"email": "email",
+	}
+
 	if !utils.IsValidEmailAddress(p.Email) {
 		return controllers.JSONResponse{
 			Code:    errCodeRequestPayloadEmailFieldNotValid,
