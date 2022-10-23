@@ -22,6 +22,7 @@ const (
 
 	// 5XX
 	ErrCodeServerGeneralFunctionGotError  string = "err-500-sgfge"
+	ErrCodeServerDatabaseCreateGotError   string = "err-500-sdbcge"
 	ErrCodeServerDatabaseQueryGotError    string = "err-500-sdbqge"
 	ErrCodeServerDatabaseUpdateGotError   string = "err-500-sdbuge"
 	ErrCodeServerRedisSetNXKeyGotError    string = "err-500-srsnxkge"

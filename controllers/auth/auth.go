@@ -2,6 +2,7 @@ package auth
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
 	"github.com/shlason/kaigon/utils"
+	"gorm.io/gorm"
 )
 
 const captchaCodeLength int = 6
@@ -147,7 +149,67 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(string(body))
+	userInfoPayload := googleOAuthUserInfoResponsePayload{}
+	err = json.Unmarshal(body, &userInfoPayload)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	accountModel := &models.Account{
+		UUID:  uuid.NewString(),
+		Email: userInfoPayload.Email,
+	}
+	result := accountModel.ReadByEmail()
+	// TODO: Error handle
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusConflict, controllers.JSONResponse{
+			Code:    "0",
+			Message: "m",
+			Data:    nil,
+		})
+		return
+	}
+	result = accountModel.Create()
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseCreateGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	accountOAuthInfoModel := &models.AccountOAuthInfo{
+		AccoundID:   accountModel.ID,
+		AccountUUID: accountModel.UUID,
+		Email:       accountModel.Email,
+		Provider:    OAuthProviderName["google"],
+	}
+
+	result = accountOAuthInfoModel.Create()
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseCreateGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	utils.SendEmail([]string{accountModel.Email}, "[Kaigon]：恭喜您註冊成功", "signup_success.html", struct{}{})
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
+	})
 }
 
 // @Summary     取得 authToken
