@@ -13,3 +13,7 @@ type AccountOauthInfo struct {
 func (accountOAuthInfo *AccountOauthInfo) Create() *gorm.DB {
 	return db.Create(&accountOAuthInfo)
 }
+
+func (accountOAuthInfo *AccountOauthInfo) ReadByEmailAndProvider() *gorm.DB {
+	return db.First(&accountOAuthInfo, "email = ? AND provider = ?", accountOAuthInfo.Email, accountOAuthInfo.Provider)
+}

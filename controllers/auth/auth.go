@@ -56,6 +56,7 @@ func GetGoogleOAuthURL(c *gin.Context) {
 }
 
 // TODO: Doc
+// TODO: 很多重複的 CODE 需要整理
 func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 	requestPayload, err := json.Marshal(map[string]string{
 		"client_id":     configs.OAuth.Google.ClientID,
@@ -161,12 +162,79 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		return
 	}
 
+	accountOAuthInfoModel := &models.AccountOauthInfo{
+		Email:    userInfoPayload.Email,
+		Provider: OAuthProviderName["google"],
+	}
+
+	// 是否有綁定過第三方登入方式
+	result := accountOAuthInfoModel.ReadByEmailAndProvider()
+
+	// 綁定過第三方登入方式的話直接去 account model 查詢來直接登入
+	if result.Error == nil {
+		am := &models.Account{
+			UUID: accountOAuthInfoModel.AccountUUID,
+		}
+		r := am.ReadByUUID()
+		// 不管是查詢不到紀錄或不明錯誤都是有問題，一律視作 500
+		if r.Error != nil {
+			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+				Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+				Message: err,
+				Data:    nil,
+			})
+			return
+		}
+		// 執行登入
+		session := &models.Session{
+			AccountUUID: am.UUID,
+			Email:       am.Email,
+		}
+		err = session.Read()
+		if !(err == nil || err == redis.Nil) {
+			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+				Code:    controllers.ErrCodeServerRedisGetKeyGotError,
+				Message: err,
+				Data:    nil,
+			})
+			return
+		}
+		if err == redis.Nil {
+			if session.Create() != nil {
+				c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+					Code:    controllers.ErrCodeServerRedisSetNXKeyGotError,
+					Message: err,
+					Data:    nil,
+				})
+				return
+			}
+		}
+		c.SetCookie(
+			controllers.RefreshTokenCookieInfo.Name,
+			session.Token,
+			controllers.RefreshTokenCookieInfo.MaxAge,
+			controllers.RefreshTokenCookieInfo.Path,
+			controllers.RefreshTokenCookieInfo.Domain,
+			controllers.RefreshTokenCookieInfo.Secure,
+			controllers.RefreshTokenCookieInfo.HttpOnly,
+		)
+		c.JSON(http.StatusOK, controllers.JSONResponse{
+			Code:    controllers.SuccessCode,
+			Message: controllers.SuccessMessage,
+			Data:    nil,
+		})
+		return
+	}
+
+	// 若該第三方登入方式還未綁定過，則去檢查該第三方的 email 是否已存在於 account model 中
+	// 若不存在就使用該 email 註冊一個帳號並且與該第三方登入方式關聯起來
+	// 若存在則跳錯誤告知使用者說該 email 已被註冊過，可能可以單純使用 email 方式登入，後續進後台在再綁定該第三方登入方式
 	accountModel := &models.Account{
 		UUID:  uuid.NewString(),
 		Email: userInfoPayload.Email,
 	}
-	result := accountModel.ReadByEmail()
-	// TODO: Error handle
+	result = accountModel.ReadByEmail()
+	// TODO: Error handle email 存在時的情境
 	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		c.JSON(http.StatusConflict, controllers.JSONResponse{
 			Code:    "0",
@@ -175,6 +243,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		})
 		return
 	}
+	// Email 不存在則自動註冊一個新帳號並關聯第三方登入
 	result = accountModel.Create()
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
@@ -185,12 +254,8 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		return
 	}
 
-	accountOAuthInfoModel := &models.AccountOauthInfo{
-		AccoundID:   accountModel.ID,
-		AccountUUID: accountModel.UUID,
-		Email:       accountModel.Email,
-		Provider:    OAuthProviderName["google"],
-	}
+	accountOAuthInfoModel.AccoundID = accountModel.ID
+	accountOAuthInfoModel.AccountUUID = accountModel.UUID
 
 	result = accountOAuthInfoModel.Create()
 
@@ -205,6 +270,39 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 
 	utils.SendEmail([]string{accountModel.Email}, "[Kaigon]：恭喜您註冊成功", "signup_success.html", struct{}{})
 
+	// 執行登入
+	session := &models.Session{
+		AccountUUID: accountModel.UUID,
+		Email:       accountModel.Email,
+	}
+	err = session.Read()
+	if !(err == nil || err == redis.Nil) {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisGetKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+	if err == redis.Nil {
+		if session.Create() != nil {
+			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+				Code:    controllers.ErrCodeServerRedisSetNXKeyGotError,
+				Message: err,
+				Data:    nil,
+			})
+			return
+		}
+	}
+	c.SetCookie(
+		controllers.RefreshTokenCookieInfo.Name,
+		session.Token,
+		controllers.RefreshTokenCookieInfo.MaxAge,
+		controllers.RefreshTokenCookieInfo.Path,
+		controllers.RefreshTokenCookieInfo.Domain,
+		controllers.RefreshTokenCookieInfo.Secure,
+		controllers.RefreshTokenCookieInfo.HttpOnly,
+	)
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
