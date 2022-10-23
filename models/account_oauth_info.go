@@ -2,7 +2,7 @@ package models
 
 import "gorm.io/gorm"
 
-type AccountOAuthInfo struct {
+type AccountOauthInfo struct {
 	gorm.Model
 	AccoundID   uint
 	AccountUUID string
@@ -10,6 +10,6 @@ type AccountOAuthInfo struct {
 	Email       string
 }
 
-func (accountOAuthInfo *AccountOAuthInfo) Create() *gorm.DB {
+func (accountOAuthInfo *AccountOauthInfo) Create() *gorm.DB {
 	return db.Create(&accountOAuthInfo)
 }

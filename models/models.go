@@ -37,7 +37,7 @@ func init() {
 	})
 
 	d.AutoMigrate(&Account{})
-	d.AutoMigrate(&AccountOAuthInfo{})
+	d.AutoMigrate(&AccountOauthInfo{})
 
 	db = d
 	rdb = rd
