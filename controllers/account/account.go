@@ -81,7 +81,7 @@ func SignUp(c *gin.Context) {
 	result = accountModel.Create()
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
-			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Code:    controllers.ErrCodeServerDatabaseCreateGotError,
 			Message: err,
 			Data:    nil,
 		})
