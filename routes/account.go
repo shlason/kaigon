@@ -16,6 +16,7 @@ func RegisteAccountRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	publicR.GET("/account/:accountUUID/info/verification/email", account.VerifyWithEmail)
 
 	publicR.GET("/account/:accountUUID/profile", account.GetProfile)
+	// TODO: 改回 private route
 	publicR.PATCH("/account/:accountUUID/profile", account.PatchProfile)
 
 	publicR.GET("/account/:accountUUID/setting")
