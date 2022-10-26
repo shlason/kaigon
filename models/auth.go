@@ -6,7 +6,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
-	"github.com/shlason/kaigon/controllers"
+	"github.com/shlason/kaigon/models/constants"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -23,7 +23,7 @@ func (s *Session) Create() error {
 		rctx,
 		fmt.Sprintf("auth:session:token:%s/%s", s.AccountUUID, s.Email),
 		s.Token,
-		time.Duration(controllers.RefreshTokenCookieInfo.MaxAge)*time.Second,
+		time.Duration(constants.RefreshTokenCookieInfo.MaxAge)*time.Second,
 	).Err()
 }
 

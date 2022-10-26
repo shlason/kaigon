@@ -14,6 +14,7 @@ import (
 	"github.com/shlason/kaigon/configs"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
+	"github.com/shlason/kaigon/models/constants"
 	"github.com/shlason/kaigon/utils"
 	"gorm.io/gorm"
 )
@@ -210,13 +211,13 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			}
 		}
 		c.SetCookie(
-			controllers.RefreshTokenCookieInfo.Name,
+			constants.RefreshTokenCookieInfo.Name,
 			session.Token,
-			controllers.RefreshTokenCookieInfo.MaxAge,
-			controllers.RefreshTokenCookieInfo.Path,
-			controllers.RefreshTokenCookieInfo.Domain,
-			controllers.RefreshTokenCookieInfo.Secure,
-			controllers.RefreshTokenCookieInfo.HttpOnly,
+			constants.RefreshTokenCookieInfo.MaxAge,
+			constants.RefreshTokenCookieInfo.Path,
+			constants.RefreshTokenCookieInfo.Domain,
+			constants.RefreshTokenCookieInfo.Secure,
+			constants.RefreshTokenCookieInfo.HttpOnly,
 		)
 		c.JSON(http.StatusOK, controllers.JSONResponse{
 			Code:    controllers.SuccessCode,
@@ -244,13 +245,9 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		return
 	}
 	// Email 不存在則自動註冊一個新帳號並關聯第三方登入
-	result = accountModel.Create()
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
-			Code:    controllers.ErrCodeServerDatabaseCreateGotError,
-			Message: err,
-			Data:    nil,
-		})
+	errResp, hasErr := controllers.InitAccountDataWhenSignUp(accountModel)
+	if hasErr {
+		c.JSON(http.StatusInternalServerError, errResp)
 		return
 	}
 
@@ -295,13 +292,13 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		}
 	}
 	c.SetCookie(
-		controllers.RefreshTokenCookieInfo.Name,
+		constants.RefreshTokenCookieInfo.Name,
 		session.Token,
-		controllers.RefreshTokenCookieInfo.MaxAge,
-		controllers.RefreshTokenCookieInfo.Path,
-		controllers.RefreshTokenCookieInfo.Domain,
-		controllers.RefreshTokenCookieInfo.Secure,
-		controllers.RefreshTokenCookieInfo.HttpOnly,
+		constants.RefreshTokenCookieInfo.MaxAge,
+		constants.RefreshTokenCookieInfo.Path,
+		constants.RefreshTokenCookieInfo.Domain,
+		constants.RefreshTokenCookieInfo.Secure,
+		constants.RefreshTokenCookieInfo.HttpOnly,
 	)
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
@@ -323,7 +320,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 // @Failure     500         {object} controllers.JSONResponse
 // @Router      /auth/session/token/refresh [get]
 func GetAuthTokenByRefreshToken(c *gin.Context) {
-	token, err := c.Cookie(controllers.RefreshTokenCookieInfo.Name)
+	token, err := c.Cookie(constants.RefreshTokenCookieInfo.Name)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, controllers.JSONResponse{
 			Code:    ErrCodeRequestHeaderCookieRefreshTokenFieldUnauthorized,
@@ -355,13 +352,13 @@ func GetAuthTokenByRefreshToken(c *gin.Context) {
 	if err != nil {
 		if err == redis.Nil {
 			c.SetCookie(
-				controllers.RefreshTokenCookieInfo.Name,
+				constants.RefreshTokenCookieInfo.Name,
 				"",
 				-1,
-				controllers.RefreshTokenCookieInfo.Path,
-				controllers.RefreshTokenCookieInfo.Domain,
-				controllers.RefreshTokenCookieInfo.Secure,
-				controllers.RefreshTokenCookieInfo.HttpOnly,
+				constants.RefreshTokenCookieInfo.Path,
+				constants.RefreshTokenCookieInfo.Domain,
+				constants.RefreshTokenCookieInfo.Secure,
+				constants.RefreshTokenCookieInfo.HttpOnly,
 			)
 			c.JSON(http.StatusUnauthorized, controllers.JSONResponse{
 				Code:    ErrCodeRequestHeaderCookieRefreshTokenFieldUnauthorized,
@@ -379,13 +376,13 @@ func GetAuthTokenByRefreshToken(c *gin.Context) {
 	}
 	if session.Token != token {
 		c.SetCookie(
-			controllers.RefreshTokenCookieInfo.Name,
+			constants.RefreshTokenCookieInfo.Name,
 			"",
 			-1,
-			controllers.RefreshTokenCookieInfo.Path,
-			controllers.RefreshTokenCookieInfo.Domain,
-			controllers.RefreshTokenCookieInfo.Secure,
-			controllers.RefreshTokenCookieInfo.HttpOnly,
+			constants.RefreshTokenCookieInfo.Path,
+			constants.RefreshTokenCookieInfo.Domain,
+			constants.RefreshTokenCookieInfo.Secure,
+			constants.RefreshTokenCookieInfo.HttpOnly,
 		)
 		c.JSON(http.StatusUnauthorized, controllers.JSONResponse{
 			Code:    ErrCodeRequestHeaderCookieRefreshTokenFieldUnauthorized,
