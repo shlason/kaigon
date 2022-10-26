@@ -4,11 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
-	"github.com/shlason/kaigon/utils"
 	"gorm.io/gorm"
 )
 
@@ -62,8 +60,8 @@ func PatchProfile(c *gin.Context) {
 		return
 	}
 
-	m := structs.Map(requestPayload)
-	utils.FilterNilMap(&m)
+	m := controllers.GetFilteredPatchRequestPayloadMap(requestPayload)
+
 	accountProfileModel := &models.AccountProfile{
 		AccountUUID: c.Param("accountUUID"),
 	}
