@@ -17,3 +17,7 @@ func (accountSetting *AccountSetting) Create() *gorm.DB {
 func (accountSetting *AccountSetting) ReadByAccountUUID() *gorm.DB {
 	return db.First(&accountSetting, "account_uuid = ?", accountSetting.AccountUUID)
 }
+
+func (accountSetting *AccountSetting) UpdateByAccountUUID(m map[string]interface{}) *gorm.DB {
+	return db.Model(&accountSetting).Where("account_uuid = ?", accountSetting.AccountUUID).Updates(m)
+}
