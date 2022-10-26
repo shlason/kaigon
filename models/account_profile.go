@@ -4,8 +4,8 @@ import "gorm.io/gorm"
 
 type AccountProfile struct {
 	gorm.Model
-	AccountID   uint
-	AccountUUID string
+	AccountID   uint   `gorm:"unique; not null;"`
+	AccountUUID string `gorm:"unique; not null;"`
 	Avatar      string
 	Banner      string
 	Signature   string

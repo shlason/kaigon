@@ -4,8 +4,8 @@ import "gorm.io/gorm"
 
 type AccountOauthInfo struct {
 	gorm.Model
-	AccoundID   uint
-	AccountUUID string
+	AccoundID   uint   `gorm:"unique; not null;"`
+	AccountUUID string `gorm:"unique; not null;"`
 	Provider    string
 	Email       string
 }
