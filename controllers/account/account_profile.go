@@ -68,7 +68,7 @@ func PatchProfile(c *gin.Context) {
 		AccountUUID: c.Param("accountUUID"),
 	}
 	result := accountProfileModel.UpdateByAccountUUID(m)
-	if result != nil {
+	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
 			Code:    controllers.ErrCodeServerDatabaseUpdateGotError,
 			Message: result.Error,
