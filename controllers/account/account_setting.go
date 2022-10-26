@@ -66,7 +66,7 @@ func PatchSetting(c *gin.Context) {
 		return
 	}
 
-	m := controllers.GetFilteredPatchRequestPayloadMap(&requestPayload)
+	m := controllers.GetFilteredNilRequestPayloadMap(&requestPayload)
 	authPayload := c.MustGet("authPayload").(*models.JWTToken)
 	accountSettingModel := models.AccountSetting{
 		AccountUUID: authPayload.AccountUUID,

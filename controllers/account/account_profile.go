@@ -60,7 +60,7 @@ func PatchProfile(c *gin.Context) {
 		return
 	}
 
-	m := controllers.GetFilteredPatchRequestPayloadMap(requestPayload)
+	m := controllers.GetFilteredNilRequestPayloadMap(requestPayload)
 
 	authPayload := c.MustGet("authPayload").(*models.JWTToken)
 	accountProfileModel := &models.AccountProfile{

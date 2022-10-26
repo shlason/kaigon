@@ -584,7 +584,7 @@ func PatchInfo(c *gin.Context) {
 		}
 	}
 
-	m := controllers.GetFilteredPatchRequestPayloadMap(requestPayload)
+	m := controllers.GetFilteredNilRequestPayloadMap(requestPayload)
 	authPayload := c.MustGet("authPayload").(*models.JWTToken)
 	accountModel := &models.Account{
 		UUID:  authPayload.AccountUUID,

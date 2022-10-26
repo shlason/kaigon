@@ -22,3 +22,7 @@ func (accountSettingNotification *AccountSettingNotification) Create() *gorm.DB 
 func (accountSettingNotification *AccountSettingNotification) ReadByAccountUUID() *gorm.DB {
 	return db.First(&accountSettingNotification, "account_uuid = ?", accountSettingNotification)
 }
+
+func (accountSettingNotification *AccountSettingNotification) UpdateByAccountUUID(m map[string]interface{}) *gorm.DB {
+	return db.Model(&accountSettingNotification).Where("account_uuid = ?", accountSettingNotification.AccountUUID).Updates(m)
+}

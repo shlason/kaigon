@@ -16,7 +16,7 @@ func BindJSON(c *gin.Context, r interface{}) (JSONResponse, error) {
 	}, err
 }
 
-func GetFilteredPatchRequestPayloadMap(any interface{}) map[string]interface{} {
+func GetFilteredNilRequestPayloadMap(any interface{}) map[string]interface{} {
 	m := structs.Map(any)
 	utils.FilterNilMap(&m)
 	return m
