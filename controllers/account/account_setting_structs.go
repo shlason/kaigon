@@ -1,11 +1,20 @@
 package account
 
-import "github.com/shlason/kaigon/controllers"
+import (
+	"github.com/shlason/kaigon/controllers"
+)
+
+type oauthInfoResponsePayload struct {
+	controllers.GormModelResponse
+	Provider string `json:"provider"`
+	Email    string `json:"email"`
+}
 
 type getSettingResponsePayload struct {
 	controllers.GormModelResponse
-	Name   string `json:"name"`
-	Locale string `json:"locale"`
+	Name       string                     `json:"name"`
+	Locale     string                     `json:"locale"`
+	OAuthInfos []oauthInfoResponsePayload `json:"OAuthInfos"`
 }
 
 type patchSettingRequestPayload struct {

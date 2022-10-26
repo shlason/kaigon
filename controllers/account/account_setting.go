@@ -17,7 +17,6 @@ func GetSetting(c *gin.Context) {
 	}
 
 	result := accountSettingModel.ReadByAccountUUID()
-
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusBadRequest, controllers.JSONResponse{
@@ -35,6 +34,31 @@ func GetSetting(c *gin.Context) {
 		return
 	}
 
+	var accountOAuthInfos []models.AccountOauthInfo
+	var accountOAuthInfosResponsePayload []oauthInfoResponsePayload
+
+	result = models.AccountOauthInfo{}.ReadAllByAccountUUID(c.Param("accountUUID"), &accountOAuthInfos)
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	for _, accountOAuthInfo := range accountOAuthInfos {
+		accountOAuthInfosResponsePayload = append(accountOAuthInfosResponsePayload, oauthInfoResponsePayload{
+			GormModelResponse: controllers.GormModelResponse{
+				CreatedAt: accountOAuthInfo.CreatedAt,
+				UpdatedAt: accountOAuthInfo.UpdatedAt,
+				DeletedAt: accountOAuthInfo.DeletedAt,
+			},
+			Email:    accountOAuthInfo.Email,
+			Provider: accountOAuthInfo.Provider,
+		})
+	}
+
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
@@ -44,8 +68,9 @@ func GetSetting(c *gin.Context) {
 				UpdatedAt: accountSettingModel.UpdatedAt,
 				DeletedAt: accountSettingModel.DeletedAt,
 			},
-			Name:   accountSettingModel.Name,
-			Locale: accountSettingModel.Locale,
+			Name:       accountSettingModel.Name,
+			Locale:     accountSettingModel.Locale,
+			OAuthInfos: accountOAuthInfosResponsePayload,
 		},
 	})
 }
