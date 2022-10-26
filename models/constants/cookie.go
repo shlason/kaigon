@@ -1,4 +1,4 @@
-package controllers
+package constants
 
 type refreshTokenCookieInfo struct {
 	Name     string

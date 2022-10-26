@@ -11,6 +11,7 @@ import (
 	"github.com/shlason/kaigon/configs"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
+	"github.com/shlason/kaigon/models/constants"
 	"github.com/shlason/kaigon/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -78,13 +79,10 @@ func SignUp(c *gin.Context) {
 		})
 		return
 	}
-	result = accountModel.Create()
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
-			Code:    controllers.ErrCodeServerDatabaseCreateGotError,
-			Message: err,
-			Data:    nil,
-		})
+
+	errResp, hasErr := controllers.InitAccountDataWhenSignUp(accountModel)
+	if hasErr {
+		c.JSON(http.StatusInternalServerError, errResp)
 		return
 	}
 
@@ -188,13 +186,13 @@ func SignIn(c *gin.Context) {
 		}
 	}
 	c.SetCookie(
-		controllers.RefreshTokenCookieInfo.Name,
+		constants.RefreshTokenCookieInfo.Name,
 		session.Token,
-		controllers.RefreshTokenCookieInfo.MaxAge,
-		controllers.RefreshTokenCookieInfo.Path,
-		controllers.RefreshTokenCookieInfo.Domain,
-		controllers.RefreshTokenCookieInfo.Secure,
-		controllers.RefreshTokenCookieInfo.HttpOnly,
+		constants.RefreshTokenCookieInfo.MaxAge,
+		constants.RefreshTokenCookieInfo.Path,
+		constants.RefreshTokenCookieInfo.Domain,
+		constants.RefreshTokenCookieInfo.Secure,
+		constants.RefreshTokenCookieInfo.HttpOnly,
 	)
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
