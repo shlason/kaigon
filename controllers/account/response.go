@@ -22,6 +22,9 @@ const (
 	errCodeRequestPayloadVerificationTypeFieldNotValid    = "err-400-rpvtnv"
 	errMessageRequestPayloadVerificationTypeFieldNotValid = "verification type is not valid `[email]`"
 
+	errCodeRequestParamAccountUUIDNotFound    = "err-400-rpaunf"
+	errMessageRequestParamAccountUUIDNotFound = "account uuid record not found"
+
 	errCodeRequestPayloadEmailFieldDatabaseRecordAlreadyExist    = "err-409-rpefdbrae"
 	errMessageRequestPayloadEmailFieldDatabaseRecordAlreadyExist = "email record already exist"
 )

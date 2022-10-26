@@ -14,3 +14,7 @@ type AccountProfile struct {
 func (accountProfile *AccountProfile) Create() *gorm.DB {
 	return db.Create(&accountProfile)
 }
+
+func (accountProfile *AccountProfile) ReadByAccountUUID() *gorm.DB {
+	return db.First(&accountProfile, "account_uuid = ?", accountProfile.AccountUUID)
+}
