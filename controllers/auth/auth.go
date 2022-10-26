@@ -251,7 +251,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		return
 	}
 
-	accountOAuthInfoModel.AccoundID = accountModel.ID
+	accountOAuthInfoModel.AccountID = accountModel.ID
 	accountOAuthInfoModel.AccountUUID = accountModel.UUID
 
 	result = accountOAuthInfoModel.Create()

@@ -4,10 +4,10 @@ import "gorm.io/gorm"
 
 type AccountOauthInfo struct {
 	gorm.Model
-	AccoundID   uint   `gorm:"unique; not null;"`
-	AccountUUID string `gorm:"unique; not null;"`
-	Provider    string
-	Email       string
+	AccountID   uint   `gorm:"not null"`
+	AccountUUID string `gorm:"not null"`
+	Provider    string `gorm:"not null"`
+	Email       string `gorm:"not null"`
 }
 
 func (accountOAuthInfo *AccountOauthInfo) Create() *gorm.DB {
