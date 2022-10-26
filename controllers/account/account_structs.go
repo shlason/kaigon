@@ -9,7 +9,11 @@ import (
 	"github.com/shlason/kaigon/utils"
 )
 
-const passwordMaximumLength int = 32
+func isValidPassword(p string) bool {
+	const passwordMaximumLength int = 32
+
+	return p != "" && len(p) <= passwordMaximumLength
+}
 
 type signUpRequestPayload struct {
 	Email       string `json:"email"`
@@ -27,7 +31,7 @@ func (p *signUpRequestPayload) check() (errResponse controllers.JSONResponse, is
 		}, true
 	}
 
-	if p.Password == "" || len(p.Password) > passwordMaximumLength {
+	if !isValidPassword(p.Password) {
 		return controllers.JSONResponse{
 			Code:    errCodeRequestPayloadPasswordFieldNotValid,
 			Message: errMessageRequestPayloadPasswordFieldNotValid,
@@ -62,7 +66,7 @@ func (p *signInRequestPayload) check() (errResponse controllers.JSONResponse, is
 		}, true
 	}
 
-	if p.Password == "" || len(p.Password) > passwordMaximumLength {
+	if !isValidPassword(p.Password) {
 		return controllers.JSONResponse{
 			Code:    errCodeRequestPayloadPasswordFieldNotValid,
 			Message: errMessageRequestPayloadPasswordFieldNotValid,
@@ -141,7 +145,7 @@ func (p *resetPasswordRequestPayload) check() (errResponse controllers.JSONRespo
 		}, true
 	}
 
-	if p.Password == "" || len(p.Password) > passwordMaximumLength {
+	if !isValidPassword(p.Password) {
 		return controllers.JSONResponse{
 			Code:    errCodeRequestPayloadPasswordFieldNotValid,
 			Message: errMessageRequestPayloadPasswordFieldNotValid,
@@ -231,4 +235,29 @@ type getInfoResponsePayload struct {
 	controllers.GormModelResponse
 	UUID  string `json:"uuid"`
 	Email string `json:"email"`
+}
+
+type patchInfoRequestPayload struct {
+	Email    *string `json:"eamil"`
+	Password *string `json"password"`
+}
+
+func (p *patchInfoRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
+	if p.Email != nil && !utils.IsValidEmailAddress(*p.Email) {
+		return controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestPayloadFieldNotValid,
+			Message: controllers.ErrMessageRequestPayloadFieldNotValid,
+			Data:    nil,
+		}, true
+	}
+
+	if !isValidPassword(*p.Password) {
+		return controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestPayloadFieldNotValid,
+			Message: controllers.ErrMessageRequestPayloadFieldNotValid,
+			Data:    nil,
+		}, true
+	}
+
+	return controllers.JSONResponse{}, false
 }

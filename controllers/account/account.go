@@ -537,5 +537,48 @@ func GetInfo(c *gin.Context) {
 
 // TODO: Doc
 func PatchInfo(c *gin.Context) {
+	var requestPayload *patchInfoRequestPayload
 
+	errResp, isNotValid := requestPayload.check()
+	if isNotValid {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+
+	if requestPayload.Password != nil {
+		hashPwd, err := bcrypt.GenerateFromPassword([]byte(*requestPayload.Password), 14)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+				Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+				Message: err,
+				Data:    nil,
+			})
+			return
+		}
+		*requestPayload.Password = string(hashPwd)
+	}
+
+	m := controllers.GetFilteredPatchRequestPayloadMap(requestPayload)
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+	accountModel := &models.Account{
+		UUID:  authPayload.AccountUUID,
+		Email: authPayload.Email,
+	}
+
+	result := accountModel.UpdateByEmailAndUUID(m)
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseUpdateGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
+	})
 }
