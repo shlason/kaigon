@@ -19,7 +19,7 @@ type patchProfileRequestPayload struct {
 }
 
 func (p *patchProfileRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
-	if p.Avatar != nil {
+	if p.Avatar != nil && *p.Avatar != "" {
 		_, err := url.ParseRequestURI(*p.Avatar)
 		if err != nil {
 			return controllers.JSONResponse{
@@ -30,7 +30,7 @@ func (p *patchProfileRequestPayload) check() (errResponse controllers.JSONRespon
 		}
 	}
 
-	if p.Banner != nil {
+	if p.Banner != nil && *p.Banner != "" {
 		_, err := url.ParseRequestURI(*p.Banner)
 		if err != nil {
 			return controllers.JSONResponse{
@@ -41,7 +41,7 @@ func (p *patchProfileRequestPayload) check() (errResponse controllers.JSONRespon
 		}
 	}
 
-	if p.Signature != nil {
+	if p.Signature != nil && *p.Signature != "" {
 		_, err := url.ParseRequestURI(*p.Signature)
 		if err != nil {
 			return controllers.JSONResponse{
