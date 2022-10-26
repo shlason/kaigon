@@ -523,7 +523,7 @@ func GetInfo(c *gin.Context) {
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
 		Data: getInfoResponsePayload{
-			GormModelField: controllers.GormModelField{
+			GormModelResponse: controllers.GormModelResponse{
 				ID:        accountModel.ID,
 				CreatedAt: accountModel.CreatedAt,
 				UpdatedAt: accountModel.UpdatedAt,

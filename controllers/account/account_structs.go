@@ -228,7 +228,7 @@ type verifyWithEmailRequestPayload struct {
 }
 
 type getInfoResponsePayload struct {
-	controllers.GormModelField
+	controllers.GormModelResponse
 	UUID  string `json:"uuid"`
 	Email string `json:"email"`
 }

@@ -12,7 +12,7 @@ type JSONResponse struct {
 	Data    interface{} `json:"data"`
 }
 
-type GormModelField struct {
+type GormModelResponse struct {
 	ID        uint           `json:"id"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
