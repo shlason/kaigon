@@ -13,7 +13,7 @@ type JSONResponse struct {
 }
 
 type GormModelResponse struct {
-	ID        uint           `json:"id"`
+	ID        uint           `json:"id,omitempty"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"deletedAt"`

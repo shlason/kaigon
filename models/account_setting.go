@@ -13,3 +13,7 @@ type AccountSetting struct {
 func (accountSetting *AccountSetting) Create() *gorm.DB {
 	return db.Create(&accountSetting)
 }
+
+func (accountSetting *AccountSetting) ReadByAccountUUID() *gorm.DB {
+	return db.First(&accountSetting, "account_uuid = ?", accountSetting.AccountUUID)
+}
