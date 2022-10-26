@@ -494,3 +494,48 @@ func ResetPassword(c *gin.Context) {
 		Data:    nil,
 	})
 }
+
+// TODO: Doc
+func GetInfo(c *gin.Context) {
+	accountModel := &models.Account{
+		UUID: c.Param("accountUUID"),
+	}
+	result := accountModel.ReadByUUID()
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+				Code:    errCodeRequestParamAccountUUIDNotFound,
+				Message: errMessageRequestParamAccountUUIDNotFound,
+				Data:    nil,
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data: getInfoResponsePayload{
+			GormModelField: controllers.GormModelField{
+				ID:        accountModel.ID,
+				CreatedAt: accountModel.CreatedAt,
+				UpdatedAt: accountModel.UpdatedAt,
+				DeletedAt: accountModel.DeletedAt,
+			},
+			UUID:  accountModel.UUID,
+			Email: accountModel.Email,
+		},
+	})
+}
+
+// TODO: Doc
+func PatchInfo(c *gin.Context) {
+
+}
