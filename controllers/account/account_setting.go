@@ -35,7 +35,7 @@ func GetSetting(c *gin.Context) {
 	}
 
 	var accountOAuthInfos []models.AccountOauthInfo
-	var accountOAuthInfosResponsePayload []oauthInfoResponsePayload
+	accountOAuthInfosResponsePayload := []oauthInfoResponsePayload{}
 
 	result = models.AccountOauthInfo{}.ReadAllByAccountUUID(c.Param("accountUUID"), &accountOAuthInfos)
 	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {

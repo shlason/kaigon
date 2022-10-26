@@ -35,7 +35,7 @@ func GetProfile(c *gin.Context) {
 	}
 
 	var socialMedias []models.AccountProfileSocialMedia
-	var socialMediasResponsePayload []socialMediaResponsePayload
+	socialMediasResponsePayload := []socialMediaResponsePayload{}
 
 	result = models.AccountProfileSocialMedia{}.ReadAllByAccountUUID(c.Param("accountUUIID"), &socialMedias)
 	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
