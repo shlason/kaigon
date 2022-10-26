@@ -41,6 +41,7 @@ type googleOAuthUserInfoResponsePayload struct {
 }
 
 type getAuthTokenByRefreshTokenRequestParamsPayload struct {
+	AccountID   uint   `form:"accountId"`
 	AccountUUID string `form:"accountUuid"`
 	Email       string `form:"email"`
 }

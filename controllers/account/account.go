@@ -163,6 +163,7 @@ func SignIn(c *gin.Context) {
 	}
 
 	session := &models.Session{
+		AccountID:   accountModel.ID,
 		AccountUUID: accountModel.UUID,
 		Email:       accountModel.Email,
 	}

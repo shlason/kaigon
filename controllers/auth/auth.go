@@ -188,6 +188,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		}
 		// 執行登入
 		session := &models.Session{
+			AccountID:   am.ID,
 			AccountUUID: am.UUID,
 			Email:       am.Email,
 		}
@@ -269,6 +270,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 
 	// 執行登入
 	session := &models.Session{
+		AccountID:   accountModel.ID,
 		AccountUUID: accountModel.UUID,
 		Email:       accountModel.Email,
 	}
@@ -312,6 +314,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 // @Tags        auth
 // @Accept      json
 // @Produce     json
+// @Param       accountId   query    uint   true "Account ID"
 // @Param       accountUuid query    string true "Account UUID"
 // @Param       email       query    string true "Account Email"
 // @Success     200         {object} controllers.JSONResponse{data=getAuthTokenByRefreshTokenResponsePayload}
@@ -345,6 +348,7 @@ func GetAuthTokenByRefreshToken(c *gin.Context) {
 		return
 	}
 	session := models.Session{
+		AccountID:   requestParams.AccountID,
 		AccountUUID: requestParams.AccountUUID,
 		Email:       requestParams.Email,
 	}
@@ -393,8 +397,9 @@ func GetAuthTokenByRefreshToken(c *gin.Context) {
 	}
 
 	jwtModel := &models.JWTToken{
-		AccountUUID: requestParams.AccountUUID,
-		Email:       requestParams.Email,
+		AccountID:   session.AccountID,
+		AccountUUID: session.AccountUUID,
+		Email:       session.Email,
 	}
 
 	authToken, err := jwtModel.Generate()
