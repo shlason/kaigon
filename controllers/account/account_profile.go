@@ -62,8 +62,9 @@ func PatchProfile(c *gin.Context) {
 
 	m := controllers.GetFilteredPatchRequestPayloadMap(requestPayload)
 
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
 	accountProfileModel := &models.AccountProfile{
-		AccountUUID: c.Param("accountUUID"),
+		AccountUUID: authPayload.AccountUUID,
 	}
 	result := accountProfileModel.UpdateByAccountUUID(m)
 	if result.Error != nil {
