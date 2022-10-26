@@ -34,13 +34,34 @@ func GetProfile(c *gin.Context) {
 		return
 	}
 
+	var socialMedias []models.AccountProfileSocialMedia
+	var socialMediasResponsePayload []socialMediaResponsePayload
+
+	result = models.AccountProfileSocialMedia{}.ReadAllByAccountUUID(c.Param("accountUUIID"), &socialMedias)
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	for _, socialMedia := range socialMedias {
+		socialMediasResponsePayload = append(socialMediasResponsePayload, socialMediaResponsePayload{
+			Provider: socialMedia.Provider,
+			UserName: socialMedia.UserName,
+		})
+	}
+
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
 		Data: getProfileResponsePayload{
-			Avatar:    accountProfileModel.Avatar,
-			Banner:    accountProfileModel.Banner,
-			Signature: accountProfileModel.Signature,
+			Avatar:       accountProfileModel.Avatar,
+			Banner:       accountProfileModel.Banner,
+			Signature:    accountProfileModel.Signature,
+			SocialMedias: socialMediasResponsePayload,
 		},
 	})
 }

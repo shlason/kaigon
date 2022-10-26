@@ -6,10 +6,16 @@ import (
 	"github.com/shlason/kaigon/controllers"
 )
 
+type socialMediaResponsePayload struct {
+	Provider string `json:"provider"`
+	UserName string `json:"userName"`
+}
+
 type getProfileResponsePayload struct {
-	Avatar    string `json:"avatar"`
-	Banner    string `json:"banner"`
-	Signature string `json:"signature"`
+	Avatar       string                       `json:"avatar"`
+	Banner       string                       `json:"banner"`
+	Signature    string                       `json:"signature"`
+	SocialMedias []socialMediaResponsePayload `json:"socialMedias"`
 }
 
 type patchProfileRequestPayload struct {
