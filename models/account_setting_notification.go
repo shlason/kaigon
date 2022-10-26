@@ -1,5 +1,7 @@
 package models
 
+import "gorm.io/gorm"
+
 type AccountSettingNotification struct {
 	AccountID               uint
 	AccountUUID             string
@@ -10,4 +12,8 @@ type AccountSettingNotification struct {
 	InterestRecommendation  bool
 	Chat                    bool
 	Followed                bool
+}
+
+func (accountSettingNotification *AccountSettingNotification) Create() *gorm.DB {
+	return db.Create(&accountSettingNotification)
 }

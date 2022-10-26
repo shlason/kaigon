@@ -9,3 +9,7 @@ type AccountSetting struct {
 	Name        string
 	Locale      string
 }
+
+func (accountSetting *AccountSetting) Create() *gorm.DB {
+	return db.Create(&accountSetting)
+}

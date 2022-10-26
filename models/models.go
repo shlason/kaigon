@@ -38,6 +38,9 @@ func init() {
 
 	d.AutoMigrate(&Account{})
 	d.AutoMigrate(&AccountOauthInfo{})
+	d.AutoMigrate(&AccountProfile{})
+	d.AutoMigrate(&AccountSetting{})
+	d.AutoMigrate(&AccountSettingNotification{})
 
 	db = d
 	rdb = rd

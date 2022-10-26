@@ -10,3 +10,7 @@ type AccountProfile struct {
 	Banner      string
 	Signature   string
 }
+
+func (accountProfile *AccountProfile) Create() *gorm.DB {
+	return db.Create(&accountProfile)
+}
