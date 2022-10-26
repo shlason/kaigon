@@ -3,8 +3,8 @@ package models
 import "gorm.io/gorm"
 
 type AccountSettingNotification struct {
-	AccountID               uint
-	AccountUUID             string
+	AccountID               uint   `gorm:"unique; not null;"`
+	AccountUUID             string `gorm:"unique; not null;"`
 	FollowOrOwnArticleReply uint
 	CommentTagged           bool
 	ArticleTweet            bool

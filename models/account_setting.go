@@ -4,8 +4,8 @@ import "gorm.io/gorm"
 
 type AccountSetting struct {
 	gorm.Model
-	AccountID   uint
-	AccountUUID string
+	AccountID   uint   `gorm:"unique; not null;"`
+	AccountUUID string `gorm:"unique; not null;"`
 	Name        string
 	Locale      string
 }
