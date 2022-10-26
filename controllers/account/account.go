@@ -558,6 +558,32 @@ func PatchInfo(c *gin.Context) {
 		*requestPayload.Password = string(hashPwd)
 	}
 
+	// 檢查 email 是否已存在
+	if requestPayload.Email != nil {
+		am := &models.Account{
+			Email: *requestPayload.Email,
+		}
+		r := am.ReadByEmail()
+		// 若 query 成功代表 email 重複了 (已存在)
+		if r.Error == nil {
+			c.JSON(http.StatusConflict, controllers.JSONResponse{
+				Code:    errCodeRequestPayloadEmailFieldDatabaseRecordAlreadyExist,
+				Message: errMessageRequestPayloadEmailFieldDatabaseRecordAlreadyExist,
+				Data:    nil,
+			})
+			return
+		}
+		// 來到這邊代表 query 發生錯誤，若錯誤不是 gorm.ErrRecordNotFound 代表發生不知名錯誤，直接噴 500
+		if !errors.Is(r.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+				Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+				Message: r.Error,
+				Data:    nil,
+			})
+			return
+		}
+	}
+
 	m := controllers.GetFilteredPatchRequestPayloadMap(requestPayload)
 	authPayload := c.MustGet("authPayload").(*models.JWTToken)
 	accountModel := &models.Account{
