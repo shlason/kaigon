@@ -17,6 +17,9 @@ const (
 	ErrCodeRequestPayloadCaptchaFieldNotValid    string = "err-400-rpcfnv"
 	ErrMessageRequestPayloadCaptchaFieldNotValid string = "captcha not valid"
 
+	ErrCodeRequestPayloadFieldNotValid    string = "err-400-rpfnv"
+	ErrMessageRequestPayloadFieldNotValid string = "request payload some field is not valid"
+
 	ErrCodeRequestPermissionForbidden    string = "err-403-rpf"
 	ErrMessageRequestPermissionForbidden string = "no permission to access"
 

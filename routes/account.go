@@ -16,7 +16,7 @@ func RegisteAccountRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	publicR.GET("/account/:accountUUID/info/verification/email", account.VerifyWithEmail)
 
 	publicR.GET("/account/:accountUUID/profile", account.GetProfile)
-	privateR.PATCH("/account/:accountUUID/profile")
+	publicR.PATCH("/account/:accountUUID/profile", account.PatchProfile)
 
 	publicR.GET("/account/:accountUUID/setting")
 	privateR.PATCH("/account/:accountUUID/setting")
