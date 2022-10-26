@@ -239,7 +239,7 @@ type getInfoResponsePayload struct {
 
 type patchInfoRequestPayload struct {
 	Email    *string `json:"eamil"`
-	Password *string `json"password"`
+	Password *string `json:"password"`
 }
 
 func (p *patchInfoRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
