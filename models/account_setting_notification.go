@@ -18,3 +18,7 @@ type AccountSettingNotification struct {
 func (accountSettingNotification *AccountSettingNotification) Create() *gorm.DB {
 	return db.Create(&accountSettingNotification)
 }
+
+func (accountSettingNotification *AccountSettingNotification) ReadByAccountUUID() *gorm.DB {
+	return db.First(&accountSettingNotification, "account_uuid = ?", accountSettingNotification)
+}

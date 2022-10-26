@@ -24,6 +24,6 @@ func RegisteAccountRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	publicR.GET("/account/:accountUUID/setting", account.GetSetting)
 	privateR.PATCH("/account/:accountUUID/setting", account.PatchSetting)
 
-	privateR.GET("/account/:accountUUID/setting/notification")
-	privateR.PUT("/account/:accountUUID/setting/notification")
+	privateR.GET("/account/:accountUUID/setting/notification", account.GetSettingNotification)
+	privateR.PUT("/account/:accountUUID/setting/notification", account.PutSettingNotification)
 }
