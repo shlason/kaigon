@@ -46,6 +46,10 @@ type googleOAuthRedirectURIForBindQueryParams struct {
 	RedirectPath string `form:"redirectPath"`
 }
 
+type googleOAuthBindRequestPayload struct {
+	GrantCode string `json:"grantCode"`
+}
+
 type getAuthTokenByRefreshTokenRequestParamsPayload struct {
 	AccountID   uint   `form:"accountId"`
 	AccountUUID string `form:"accountUuid"`

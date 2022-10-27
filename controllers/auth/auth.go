@@ -62,6 +62,7 @@ func GetGoogleOAuthURL(c *gin.Context) {
 	})
 }
 
+// TODO: redirectURI 前後請求一致性問題需要修改
 func getGoogleOAuthInfoByGrantCode(c *gin.Context, grantCode string) (googleOAuthUserInfoResponsePayload, error) {
 	requestPayload, err := json.Marshal(map[string]string{
 		"client_id":     configs.OAuth.Google.ClientID,
@@ -352,7 +353,68 @@ func GoogleOAuthRedirectURIForBind(c *gin.Context) {
 
 // TODO: Doc
 func GoogleOAuthBind(c *gin.Context) {
+	var requestPayload *googleOAuthBindRequestPayload
 
+	errResp, err := controllers.BindJSON(c, &requestPayload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+
+	userInfoPayload, err := getGoogleOAuthInfoByGrantCode(c, requestPayload.GrantCode)
+
+	if err != nil {
+		return
+	}
+
+	accountOAuthInfoModel := &models.AccountOauthInfo{
+		Email:    userInfoPayload.Email,
+		Provider: OAuthProviderName["google"],
+	}
+
+	// 是否有綁定過第三方登入方式
+	result := accountOAuthInfoModel.ReadByEmailAndProvider()
+
+	// DB query 沒遇到問題 (record not found) 代表已經有該 OAuth Info
+	if result.Error == nil {
+		c.JSON(http.StatusConflict, controllers.JSONResponse{
+			Code:    ErrCodeRequestRecordAlreadyExistWhenOAuthBinding,
+			Message: ErrMessageRequestRecordAlreadyExistWhenOAuthBinding,
+			Data:    nil,
+		})
+		return
+	}
+	// 執行到這裡代表 DB query 遇到問題，若問題不是預期的 (record not found) 則當作不明錯誤 直接噴 500
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+
+	accountOAuthInfoModel.AccountID = authPayload.AccountID
+	accountOAuthInfoModel.AccountUUID = authPayload.AccountUUID
+
+	result = accountOAuthInfoModel.Create()
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseCreateGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
+	})
 }
 
 // @Summary     取得 authToken
