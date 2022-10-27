@@ -250,11 +250,12 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			constants.RefreshTokenCookieInfo.Secure,
 			constants.RefreshTokenCookieInfo.HttpOnly,
 		)
-		c.JSON(http.StatusOK, controllers.JSONResponse{
-			Code:    controllers.SuccessCode,
-			Message: controllers.SuccessMessage,
-			Data:    nil,
-		})
+		c.Redirect(http.StatusMovedPermanently, fmt.Sprintf(
+			"%s://%s%s?success=1",
+			configs.Server.Protocol,
+			configs.Server.Host,
+			requestParams.State,
+		))
 		return
 	}
 
@@ -335,7 +336,6 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		constants.RefreshTokenCookieInfo.HttpOnly,
 	)
 
-	// TODO: 和前端討論 成功後導轉回去時要帶的 Query
 	c.Redirect(http.StatusMovedPermanently, fmt.Sprintf(
 		"%s://%s%s?success=1",
 		configs.Server.Protocol,
