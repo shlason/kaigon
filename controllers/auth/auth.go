@@ -50,19 +50,23 @@ func GetGoogleOAuthURL(c *gin.Context) {
 			URL: fmt.Sprintf(
 				"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=https://www.googleapis.com/auth/userinfo.email",
 				configs.OAuth.Google.ClientID,
-				fmt.Sprintf("%s://%s/api/auth/o/google/%s", configs.Server.Protocol, configs.Server.Host, requestParams.Type),
+				fmt.Sprintf(
+					"%s://%s/api/auth/o/google/%s?redirectPath=%s",
+					configs.Server.Protocol,
+					configs.Server.Host,
+					requestParams.Type,
+					requestParams.RedirectPath,
+				),
 			),
 		},
 	})
 }
 
-// TODO: Doc
-// TODO: 很多重複的 CODE 需要整理
-func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
+func getGoogleOAuthInfoByGrantCode(c *gin.Context, grantCode string) (googleOAuthUserInfoResponsePayload, error) {
 	requestPayload, err := json.Marshal(map[string]string{
 		"client_id":     configs.OAuth.Google.ClientID,
 		"client_secret": configs.OAuth.Google.ClientSecret,
-		"code":          c.Query("code"),
+		"code":          grantCode,
 		"redirect_uri":  fmt.Sprintf("%s://%s/api/auth/o/google/login", configs.Server.Protocol, configs.Server.Host),
 		"grant_type":    "authorization_code",
 	})
@@ -73,7 +77,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	responseBody := bytes.NewBuffer(requestPayload)
@@ -86,7 +90,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	defer resp.Body.Close()
@@ -99,7 +103,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	accessTokenResp := googleOAuthAccessTokenResponsePayload{}
@@ -111,7 +115,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	client := &http.Client{}
@@ -123,7 +127,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	req.Header.Add("Authorization", fmt.Sprintf("%s %s", accessTokenResp.TokenType, accessTokenResp.AccessToken))
@@ -135,7 +139,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	defer fresp.Body.Close()
@@ -148,7 +152,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	userInfoPayload := googleOAuthUserInfoResponsePayload{}
@@ -160,6 +164,18 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
+		return googleOAuthUserInfoResponsePayload{}, err
+	}
+
+	return userInfoPayload, nil
+}
+
+// TODO: Doc
+// TODO: 登入、註冊有很多重複的 CODE 需要整理
+func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
+	userInfoPayload, err := getGoogleOAuthInfoByGrantCode(c, c.Query("code"))
+
+	if err != nil {
 		return
 	}
 
@@ -307,6 +323,36 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		Message: controllers.SuccessMessage,
 		Data:    nil,
 	})
+}
+
+// TODO: Doc
+// TODO: Redirect URL QS 和前端確認
+func GoogleOAuthRedirectURIForBind(c *gin.Context) {
+	var requestParams *googleOAuthRedirectURIForBindQueryParams
+
+	err := c.ShouldBindQuery(&requestParams)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestQueryParamsNotValid,
+			Message: controllers.ErrMessageRequestQueryParamsNotValid,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.Redirect(http.StatusMovedPermanently, fmt.Sprintf(
+		"%s://%s%s?grantCode=%s",
+		configs.Server.Protocol,
+		configs.Server.Host,
+		requestParams.RedirectPath,
+		requestParams.Code,
+	))
+}
+
+// TODO: Doc
+func GoogleOAuthBind(c *gin.Context) {
+
 }
 
 // @Summary     取得 authToken

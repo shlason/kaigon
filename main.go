@@ -57,7 +57,7 @@ func main() {
 	private.Use(middlewares.JWT)
 
 	routes.RegisteAccountRoutes(public, private)
-	routes.RegisteAuthRoutes(public)
+	routes.RegisteAuthRoutes(public, private)
 	routes.RegisteImageRoutes(private)
 
 	if os.Getenv("CODE_RUN_ENV") == "prod" {

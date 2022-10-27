@@ -5,11 +5,12 @@ import (
 	"github.com/shlason/kaigon/controllers/auth"
 )
 
-func RegisteAuthRoutes(publicR *gin.RouterGroup) {
+func RegisteAuthRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	// OAuth callback
 	publicR.GET("/auth/o/google/url", auth.GetGoogleOAuthURL)
 	publicR.GET("/auth/o/google/login", auth.GoogleOAuthRedirectURIForLogin)
-	publicR.GET("/auth/o/google/bind", auth.GoogleOAuthRedirectURIForLogin)
+	publicR.GET("/auth/o/google/bind", auth.GoogleOAuthRedirectURIForBind)
+	privateR.PATCH("/auth/o/google/bind", auth.GoogleOAuthBind)
 
 	// Session
 	publicR.GET("/auth/session/token/refresh", auth.GetAuthTokenByRefreshToken)
