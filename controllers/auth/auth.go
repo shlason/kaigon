@@ -22,6 +22,7 @@ import (
 const captchaCodeLength int = 6
 
 // TODO: Doc
+// TODO: Redirect URL QS 和前端確認
 func GetGoogleOAuthURL(c *gin.Context) {
 	var requestParams *getOAuthUrlQueryParmas
 
@@ -62,13 +63,12 @@ func GetGoogleOAuthURL(c *gin.Context) {
 	})
 }
 
-// TODO: redirectURI 前後請求一致性問題需要修改
-func getGoogleOAuthInfoByGrantCode(c *gin.Context, grantCode string) (googleOAuthUserInfoResponsePayload, error) {
+func getGoogleOAuthInfoByGrantCodeAndURLType(c *gin.Context, grantCode string, URLType string) (googleOAuthUserInfoResponsePayload, error) {
 	requestPayload, err := json.Marshal(map[string]string{
 		"client_id":     configs.OAuth.Google.ClientID,
 		"client_secret": configs.OAuth.Google.ClientSecret,
 		"code":          grantCode,
-		"redirect_uri":  fmt.Sprintf("%s://%s/api/auth/o/google/login", configs.Server.Protocol, configs.Server.Host),
+		"redirect_uri":  fmt.Sprintf("%s://%s/api/auth/o/google/%s", configs.Server.Protocol, configs.Server.Host, URLType),
 		"grant_type":    "authorization_code",
 	})
 
@@ -174,7 +174,20 @@ func getGoogleOAuthInfoByGrantCode(c *gin.Context, grantCode string) (googleOAut
 // TODO: Doc
 // TODO: 登入、註冊有很多重複的 CODE 需要整理
 func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
-	userInfoPayload, err := getGoogleOAuthInfoByGrantCode(c, c.Query("code"))
+	var requestParams googleOAuthRedirectURIForLoginQueryParmas
+
+	err := c.ShouldBindQuery(&requestParams)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestQueryParamsNotValid,
+			Message: controllers.ErrMessageRequestQueryParamsNotValid,
+			Data:    nil,
+		})
+		return
+	}
+
+	userInfoPayload, err := getGoogleOAuthInfoByGrantCodeAndURLType(c, requestParams.Code, "login")
 
 	if err != nil {
 		return
@@ -254,12 +267,14 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 	}
 	result = accountModel.ReadByEmail()
 	// TODO: Error handle email 存在時的情境
+	// TODO: 和前端討論 失敗後導轉回去時要帶的 Query
 	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		c.JSON(http.StatusConflict, controllers.JSONResponse{
-			Code:    "0",
-			Message: "m",
-			Data:    nil,
-		})
+		c.Redirect(http.StatusMovedPermanently, fmt.Sprintf(
+			"%s://%s%s?error=1",
+			configs.Server.Protocol,
+			configs.Server.Host,
+			requestParams.State,
+		))
 		return
 	}
 	// Email 不存在則自動註冊一個新帳號並關聯第三方登入
@@ -319,15 +334,17 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		constants.RefreshTokenCookieInfo.Secure,
 		constants.RefreshTokenCookieInfo.HttpOnly,
 	)
-	c.JSON(http.StatusOK, controllers.JSONResponse{
-		Code:    controllers.SuccessCode,
-		Message: controllers.SuccessMessage,
-		Data:    nil,
-	})
+
+	// TODO: 和前端討論 成功後導轉回去時要帶的 Query
+	c.Redirect(http.StatusMovedPermanently, fmt.Sprintf(
+		"%s://%s%s?success=1",
+		configs.Server.Protocol,
+		configs.Server.Host,
+		requestParams.State,
+	))
 }
 
 // TODO: Doc
-// TODO: Redirect URL QS 和前端確認
 func GoogleOAuthRedirectURIForBind(c *gin.Context) {
 	var requestParams *googleOAuthRedirectURIForBindQueryParams
 
@@ -361,7 +378,7 @@ func GoogleOAuthBind(c *gin.Context) {
 		return
 	}
 
-	userInfoPayload, err := getGoogleOAuthInfoByGrantCode(c, requestPayload.GrantCode)
+	userInfoPayload, err := getGoogleOAuthInfoByGrantCodeAndURLType(c, requestPayload.GrantCode, "bind")
 
 	if err != nil {
 		return

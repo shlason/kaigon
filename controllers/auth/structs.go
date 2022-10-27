@@ -41,6 +41,11 @@ type googleOAuthUserInfoResponsePayload struct {
 	Email string `json:"email"`
 }
 
+type googleOAuthRedirectURIForLoginQueryParmas struct {
+	Code  string `form:"code"`
+	State string `form:"form"`
+}
+
 type googleOAuthRedirectURIForBindQueryParams struct {
 	Code         string `form:"code"`
 	RedirectPath string `form:"redirectPath"`
