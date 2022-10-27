@@ -81,13 +81,33 @@ func PatchProfile(c *gin.Context) {
 		return
 	}
 
-	m := controllers.GetFilteredNilRequestPayloadMap(requestPayload)
-
 	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+
+	if requestPayload.SocialMedias != nil {
+		for _, socialMedia := range requestPayload.SocialMedias {
+			apsmm := &models.AccountProfileSocialMedia{
+				AccountUUID: authPayload.AccountUUID,
+				Provider:    socialMedia.Provider,
+			}
+			r := apsmm.UpdateOrCreateByAccountUUIDAndProvider(controllers.GetFilteredNilRequestPayloadMap(socialMedia))
+			if r.Error != nil {
+				c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+					Code:    controllers.ErrCodeServerDatabaseUpdateGotError,
+					Message: r.Error,
+					Data:    nil,
+				})
+				return
+			}
+		}
+		requestPayload.SocialMedias = nil
+	}
+
+	accountProfileUpdateMap := controllers.GetFilteredNilRequestPayloadMap(requestPayload)
+
 	accountProfileModel := &models.AccountProfile{
 		AccountUUID: authPayload.AccountUUID,
 	}
-	result := accountProfileModel.UpdateByAccountUUID(m)
+	result := accountProfileModel.UpdateByAccountUUID(accountProfileUpdateMap)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
 			Code:    controllers.ErrCodeServerDatabaseUpdateGotError,
