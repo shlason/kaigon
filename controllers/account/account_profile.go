@@ -84,10 +84,12 @@ func PatchProfile(c *gin.Context) {
 	authPayload := c.MustGet("authPayload").(*models.JWTToken)
 
 	if requestPayload.SocialMedias != nil {
-		for _, socialMedia := range requestPayload.SocialMedias {
+		for _, socialMedia := range *requestPayload.SocialMedias {
 			apsmm := &models.AccountProfileSocialMedia{
+				AccountID:   authPayload.AccountID,
 				AccountUUID: authPayload.AccountUUID,
 				Provider:    socialMedia.Provider,
+				UserName:    socialMedia.UserName,
 			}
 			r := apsmm.UpdateOrCreateByAccountUUIDAndProvider(controllers.GetFilteredNilRequestPayloadMap(socialMedia))
 			if r.Error != nil {

@@ -19,10 +19,10 @@ type getProfileResponsePayload struct {
 }
 
 type patchProfileRequestPayload struct {
-	Avatar       *string                      `json:"avatar"`
-	Banner       *string                      `json:"banner"`
-	Signature    *string                      `json:"signature"`
-	SocialMedias []socialMediaResponsePayload `json:"socialMedias"`
+	Avatar       *string                       `json:"avatar"`
+	Banner       *string                       `json:"banner"`
+	Signature    *string                       `json:"signature"`
+	SocialMedias *[]socialMediaResponsePayload `json:"socialMedias"`
 }
 
 func (p *patchProfileRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
@@ -66,7 +66,7 @@ func (p *patchProfileRequestPayload) check() (errResponse controllers.JSONRespon
 	}
 
 	if p.SocialMedias != nil {
-		for _, socialMedia := range p.SocialMedias {
+		for _, socialMedia := range *p.SocialMedias {
 			if _, ok := acceptSocialMediaProviders[socialMedia.Provider]; !ok {
 				return controllers.JSONResponse{
 					Code:    controllers.ErrCodeRequestPayloadFieldNotValid,
