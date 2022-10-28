@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Gin Hello</title>
+    
+</head>
+<body>
+    <label for="accountUUID">AccountUUID:</label>
+    <input type="text" id="accountUUID" name="accountUUID">
+    <button id="connect-btn">Connect</button>
+
+    <label for="receiver">receiver:</label>
+    <input type="text" id="receiver" name="receiver">
+
+    <label for="message">message:</label>
+    <input type="text" id="message" name="message">
+    <button id="send-message-btn">Submit</button>
+    <script>
+        var ws
+        function connect() {
+            const accountUUID = document.getElementById('accountUUID').value
+
+            ws = new WebSocket(`ws://localhost:8080/api/chat?accountUuid=${accountUUID}`);  
+            // onOpen被觸發時, 去嘗試連線 
+            ws.onopen = function(evt) {  
+                console.log("Connection open ...");  
+                ws.send(JSON.stringify({
+                    seq: Date.now(),
+                    cmd: "ping"
+                }));
+            };  
+            // onMessage被觸發時, 來接收ws server傳來的訊息  
+            ws.onmessage = function(evt) {  
+                console.log("Received Message: " + evt.data);  
+            };
+            // 由ws server發出的onClose事件  
+            ws.onclose = function(evt) {  
+                console.log("Connection closed.");  
+            };  
+
+            var heartbeatTimeInterval = setInterval(() => ws.send(JSON.stringify({
+                seq: Date.now(),
+                cmd: "ping"
+            })), 5000)
+        }
+
+        const connBtnEle = document.getElementById('connect-btn');
+        const sendMsgBtnEle = document.getElementById('send-message-btn');
+
+        connBtnEle.addEventListener("click", connect);
+        sendMsgBtnEle.addEventListener("click", () => {
+            const message = document.getElementById('message').value
+
+            ws.send(JSON.stringify({
+                seq: Date.now(),
+                cmd: "chat_message",
+                payload: {
+                    from: document.getElementById('accountUUID').value,
+                    to: document.getElementById('receiver').value,
+                    text: document.getElementById('message').value,
+                    timestamp: Date.now()
+                }
+            }));
+        });
+    </script>
+</body>
+</html>

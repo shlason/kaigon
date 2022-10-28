@@ -24,18 +24,37 @@ func Connect(c *gin.Context) {
 		return
 	}
 
-	defer ws.Close()
+	// TODO: 屆時改為 authPayload 來源
+	accountUUID := c.Query("accountUuid")
+	fmt.Println(accountUUID)
+	cli := make(client)
+
+	connInfo := connectionInfo{
+		AccountUUID: accountUUID,
+		client:      &cli,
+	}
+	clientConnect <- connInfo
+
+	defer (func() {
+		ws.Close()
+		clientDisconnect <- connInfo
+	})()
+
 	for {
-		mt, message, err := ws.ReadMessage()
+		var msg message
+
+		err := ws.ReadJSON(&msg)
 		if err != nil {
 			break
 		}
-		if string(message) == "ping" {
-			message = []byte("pong")
-		} else {
-			message = []byte(fmt.Sprintln("got it : " + string(message)))
-		}
-		err = ws.WriteMessage(mt, message)
+
+		msg.Self = &cli
+		messages <- msg
+
+		msg = <-cli
+
+		ws.WriteJSON(msg)
+
 		if err != nil {
 			break
 		}
