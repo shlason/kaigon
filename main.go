@@ -59,6 +59,7 @@ func main() {
 	routes.RegisteAccountRoutes(public, private)
 	routes.RegisteAuthRoutes(public, private)
 	routes.RegisteImageRoutes(private)
+	routes.RegisteChatRoutes(public)
 
 	if os.Getenv("CODE_RUN_ENV") == "prod" {
 		g.Go(func() error {
