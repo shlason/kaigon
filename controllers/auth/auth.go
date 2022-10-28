@@ -19,7 +19,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const captchaCodeLength int = 6
+const captchaCodeLength int = 8
 
 // TODO: Doc
 // TODO: Redirect URL QS 和前端確認
