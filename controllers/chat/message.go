@@ -9,10 +9,10 @@ var acceptCmds = map[string]string{
 
 // TODO: check validation
 type message struct {
-	Self          *client `json:",omitempty"`
-	Seq           int
-	Cmd           string `json:"cmd"`
-	StatusCode    int    `json:"statusCode,omitempty"`
-	StatusMessage string `json:"statusMessage,omitempty"`
-	Payload       interface{}
+	Self          *client     `json:",omitempty"`
+	Seq           int         `json:"seq"`
+	Cmd           string      `json:"cmd"`
+	StatusCode    int         `json:"statusCode"`
+	StatusMessage string      `json:"statusMessage"`
+	Payload       interface{} `json:"payload"`
 }

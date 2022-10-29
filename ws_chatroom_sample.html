@@ -6,17 +6,28 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Gin Hello</title>
-    
+    <style>
+        #chat-room {
+            border: 1px solid;
+            border-radius: 12px;
+            width: 720px;
+            height: 240px;
+            overflow-y: auto;
+            padding: 12px;
+            margin: 8px 0;
+        }
+    </style>    
 </head>
 <body>
     <label for="accountUUID">AccountUUID:</label>
     <input type="text" id="accountUUID" name="accountUUID">
     <button id="connect-btn">Connect</button>
-
-    <label for="receiver">receiver:</label>
+    <br />
+    <div style="margin: 16px 0"></div>
+    <label for="receiver">Receiver:</label>
     <input type="text" id="receiver" name="receiver">
-
-    <label for="message">message:</label>
+    <div id="chat-room"></div>
+    <label for="message">Message:</label>
     <input type="text" id="message" name="message">
     <button id="send-message-btn">Submit</button>
     <script>
@@ -34,18 +45,27 @@
                 }));
             };  
             // onMessage被觸發時, 來接收ws server傳來的訊息  
-            ws.onmessage = function(evt) {  
-                console.log("Received Message: " + evt.data);  
+            ws.onmessage = function(evt) {
+                const data = JSON.parse(evt.data)
+                const element = document.createElement("div")
+                const chatContainerEle = document.getElementById('chat-room')
+
+                if (data.cmd == "chat_message") {
+                    element.textContent = `User ${data.payload.from}: ${data.payload.text}`
+                    element.style.textAlign = "left"
+                    element.style.padding = "6px"
+                    chatContainerEle.appendChild(element)
+                }
             };
-            // 由ws server發出的onClose事件  
+            // 由ws server發出的onClose事件
             ws.onclose = function(evt) {  
                 console.log("Connection closed.");  
             };  
 
-            var heartbeatTimeInterval = setInterval(() => ws.send(JSON.stringify({
-                seq: Date.now(),
-                cmd: "ping"
-            })), 5000)
+            // var heartbeatTimeInterval = setInterval(() => ws.send(JSON.stringify({
+            //     seq: Date.now(),
+            //     cmd: "ping"
+            // })), 5000)
         }
 
         const connBtnEle = document.getElementById('connect-btn');
@@ -54,6 +74,8 @@
         connBtnEle.addEventListener("click", connect);
         sendMsgBtnEle.addEventListener("click", () => {
             const message = document.getElementById('message').value
+            const chatContainerEle = document.getElementById('chat-room')
+            const element = document.createElement("div")
 
             ws.send(JSON.stringify({
                 seq: Date.now(),
@@ -61,10 +83,14 @@
                 payload: {
                     from: document.getElementById('accountUUID').value,
                     to: document.getElementById('receiver').value,
-                    text: document.getElementById('message').value,
-                    timestamp: Date.now()
+                    text: message,
                 }
             }));
+            
+            element.textContent = `You: ${message}`
+            element.style.textAlign = "right"
+            element.style.padding = "6px"
+            chatContainerEle.appendChild(element)
         });
     </script>
 </body>

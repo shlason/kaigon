@@ -3,6 +3,7 @@ package chat
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/shlason/kaigon/controllers"
 )
@@ -10,8 +11,8 @@ import (
 type client chan message
 
 type connectionInfo struct {
-	AccountUUID string
 	*client
+	AccountUUID string
 }
 
 var (
@@ -31,7 +32,6 @@ func clientManager() {
 	for {
 		select {
 		case msg := <-messages:
-			fmt.Println(msg)
 			// TODO: 回傳的 status message, code 需要討論和統整
 			if msg.Cmd == acceptCmds["ping"] {
 				*msg.Self <- message{
@@ -51,35 +51,40 @@ func clientManager() {
 					Payload:       nil,
 				}
 
-				var anyPayload interface{} = msg.Payload
-				var chatMsgPayload chatMessagePayload
+				chatMsgPayload, err := chatMessagePayload{}.Parse(msg.Payload)
 
-				payload := anyPayload.(*chatMessagePayload)
-				chatMsgPayload.From = payload.From
-				chatMsgPayload.To = payload.To
-				chatMsgPayload.Text = payload.Text
-				chatMsgPayload.Timestamp = payload.Timestamp
-
+				if err != nil {
+					fmt.Println("chatMsgPayload.Parse got error")
+					fmt.Println(err)
+				}
+				fmt.Println(chatMsgPayload)
 				toCli, ok := clients[chatMsgPayload.To]
 				// TODO: 接收方不在線上時的處理
 				if !ok {
-					fmt.Println("Friend offline")
+					fmt.Printf("Friend: %s offline\n", chatMsgPayload.To)
 					continue
 				}
+				fmt.Printf("message sending from: %s, to: %s\n", chatMsgPayload.From, chatMsgPayload.To)
 				toCli <- message{
 					Seq:           msg.Seq,
 					Cmd:           acceptCmds["chat_message"],
 					StatusCode:    http.StatusOK,
 					StatusMessage: controllers.SuccessMessage,
-					Payload:       chatMsgPayload,
+					Payload: chatMessagePayload{
+						From:      chatMsgPayload.From,
+						To:        chatMsgPayload.To,
+						Text:      chatMsgPayload.Text,
+						Timestamp: time.Now().UTC(),
+					},
 				}
-
-				continue
+				fmt.Printf("message sended from: %s, to: %s\n", chatMsgPayload.From, chatMsgPayload.To)
 			}
 
 		case connInfo := <-clientConnect:
+			fmt.Printf("%s connecting\n", connInfo.AccountUUID)
 			clients[connInfo.AccountUUID] = *connInfo.client
 		case connInfo := <-clientDisconnect:
+			fmt.Printf("%s disconnect\n", connInfo.AccountUUID)
 			delete(clients, connInfo.AccountUUID)
 			close(*connInfo.client)
 		}

@@ -26,12 +26,11 @@ func Connect(c *gin.Context) {
 
 	// TODO: 屆時改為 authPayload 來源
 	accountUUID := c.Query("accountUuid")
-	fmt.Println(accountUUID)
 	cli := make(client)
 
 	connInfo := connectionInfo{
-		AccountUUID: accountUUID,
 		client:      &cli,
+		AccountUUID: accountUUID,
 	}
 	clientConnect <- connInfo
 
@@ -40,23 +39,39 @@ func Connect(c *gin.Context) {
 		clientDisconnect <- connInfo
 	})()
 
+	go func() {
+		for {
+			fmt.Printf("Waiting for client: %s channel to get message\n", connInfo.AccountUUID)
+			msg := <-cli
+			fmt.Printf("Actually get client: %s channel message: %v\n", connInfo.AccountUUID, msg)
+
+			fmt.Printf("Client: %s writing JSON to websocket\n", connInfo.AccountUUID)
+			err := ws.WriteJSON(msg)
+			if err != nil {
+				fmt.Printf("Client: %s write json got error: %s\n", connInfo.AccountUUID, err)
+				break
+			}
+			fmt.Printf("Client: %s writed JSON to websocket\n", connInfo.AccountUUID)
+		}
+	}()
+
 	for {
 		var msg message
 
+		fmt.Printf("Client: %s waiting JSON from websocket\n", connInfo.AccountUUID)
+
 		err := ws.ReadJSON(&msg)
+
+		fmt.Printf("Client: %s reading JSON from websocket\n", connInfo.AccountUUID)
+
 		if err != nil {
 			break
 		}
 
 		msg.Self = &cli
+
+		fmt.Printf("Client: %s passing msg to messages channel\n", connInfo.AccountUUID)
 		messages <- msg
-
-		msg = <-cli
-
-		ws.WriteJSON(msg)
-
-		if err != nil {
-			break
-		}
+		fmt.Printf("Client: %s passed msg to messages channel\n", connInfo.AccountUUID)
 	}
 }
