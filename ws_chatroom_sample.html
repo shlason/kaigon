@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Gin Hello</title>
+    <style>
+        #chat-room {
+            border: 1px solid;
+            border-radius: 12px;
+            width: 720px;
+            height: 240px;
+            overflow-y: auto;
+            padding: 12px;
+            margin: 8px 0;
+        }
+    </style>    
+</head>
+<body>
+    <label for="accountUUID">AccountUUID:</label>
+    <input type="text" id="accountUUID" name="accountUUID">
+    <button id="connect-btn">Connect</button>
+    <br />
+    <div style="margin: 16px 0"></div>
+    <label for="receiver">Receiver:</label>
+    <input type="text" id="receiver" name="receiver">
+    <div id="chat-room"></div>
+    <label for="message">Message:</label>
+    <input type="text" id="message" name="message">
+    <button id="send-message-btn">Submit</button>
+    <script>
+        var ws
+        function connect() {
+            const accountUUID = document.getElementById('accountUUID').value
+
+            ws = new WebSocket(`ws://localhost:8080/api/chat?accountUuid=${accountUUID}`);  
+            // onOpen被觸發時, 去嘗試連線 
+            ws.onopen = function(evt) {  
+                console.log("Connection open ...");  
+                ws.send(JSON.stringify({
+                    seq: Date.now(),
+                    cmd: "ping"
+                }));
+            };  
+            // onMessage被觸發時, 來接收ws server傳來的訊息  
+            ws.onmessage = function(evt) {
+                const data = JSON.parse(evt.data)
+                const element = document.createElement("div")
+                const chatContainerEle = document.getElementById('chat-room')
+
+                if (data.cmd == "chat_message") {
+                    element.textContent = `User ${data.payload.from}: ${data.payload.text}`
+                    element.style.textAlign = "left"
+                    element.style.padding = "6px"
+                    chatContainerEle.appendChild(element)
+                }
+            };
+            // 由ws server發出的onClose事件
+            ws.onclose = function(evt) {  
+                console.log("Connection closed.");  
+            };  
+
+            var heartbeatTimeInterval = setInterval(() => ws.send(JSON.stringify({
+                seq: Date.now(),
+                cmd: "ping"
+            })), 100)
+        }
+
+        const connBtnEle = document.getElementById('connect-btn');
+        const sendMsgBtnEle = document.getElementById('send-message-btn');
+
+        connBtnEle.addEventListener("click", connect);
+        sendMsgBtnEle.addEventListener("click", () => {
+            const message = document.getElementById('message').value
+            const chatContainerEle = document.getElementById('chat-room')
+            const element = document.createElement("div")
+
+            ws.send(JSON.stringify({
+                seq: Date.now(),
+                cmd: "chat_message",
+                payload: {
+                    from: document.getElementById('accountUUID').value,
+                    to: document.getElementById('receiver').value,
+                    text: message,
+                }
+            }));
+            
+            element.textContent = `You: ${message}`
+            element.style.textAlign = "right"
+            element.style.padding = "6px"
+            chatContainerEle.appendChild(element)
+        });
+    </script>
+</body>
+</html>

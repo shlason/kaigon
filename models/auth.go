@@ -12,6 +12,7 @@ import (
 
 // Redis
 type Session struct {
+	AccountID   uint
 	AccountUUID string
 	Email       string
 	Token       string
@@ -21,23 +22,24 @@ func (s *Session) Create() error {
 	s.Token = uuid.NewString()
 	return rdb.SetNX(
 		rctx,
-		fmt.Sprintf("auth:session:token:%s/%s", s.AccountUUID, s.Email),
+		fmt.Sprintf("auth:session:refresh_token:%d/%s/%s", s.AccountID, s.AccountUUID, s.Email),
 		s.Token,
 		time.Duration(constants.RefreshTokenCookieInfo.MaxAge)*time.Second,
 	).Err()
 }
 
 func (s *Session) Read() error {
-	val, err := rdb.Get(rctx, fmt.Sprintf("auth:session:token:%s/%s", s.AccountUUID, s.Email)).Result()
+	val, err := rdb.Get(rctx, fmt.Sprintf("auth:session:refresh_token:%d/%s/%s", s.AccountID, s.AccountUUID, s.Email)).Result()
 	s.Token = val
 	return err
 }
 
 func (s *Session) Delete() error {
-	return rdb.Del(rctx, fmt.Sprintf("auth:session:token:%s/%s", s.AccountUUID, s.Email)).Err()
+	return rdb.Del(rctx, fmt.Sprintf("auth:session:refresh_token:%d/%s/%s", s.AccountID, s.AccountUUID, s.Email)).Err()
 }
 
 type JWTToken struct {
+	AccountID   uint
 	AccountUUID string
 	Email       string
 	jwt.StandardClaims

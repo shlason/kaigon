@@ -50,10 +50,22 @@ type oauth struct {
 	Google oauthInfo
 }
 
+type awsS3Info struct {
+	Region          string
+	AccessKeyID     string
+	AccessSecretKey string
+	BucketName      string
+}
+
+type aws struct {
+	S3 awsS3Info
+}
+
 var Server server
 var Database database
 var Smtp smtp
 var OAuth oauth
+var AWS aws
 
 func init() {
 	homeDir, err := os.UserHomeDir()
@@ -110,6 +122,14 @@ func init() {
 		Google: oauthInfo{
 			ClientID:     cfg.Section("oauth.google").Key("client_id").String(),
 			ClientSecret: cfg.Section("oauth.google").Key("client_secret").String(),
+		},
+	}
+	AWS = aws{
+		S3: awsS3Info{
+			Region:          cfg.Section("aws.s3").Key("region").String(),
+			AccessKeyID:     cfg.Section("aws.s3").Key("access_key_id").String(),
+			AccessSecretKey: cfg.Section("aws.s3").Key("access_secret_key").String(),
+			BucketName:      cfg.Section("aws.s3").Key("bucket_name").String(),
 		},
 	}
 }

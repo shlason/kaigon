@@ -19,9 +19,10 @@ import (
 	"gorm.io/gorm"
 )
 
-const captchaCodeLength int = 6
+const captchaCodeLength int = 8
 
 // TODO: Doc
+// TODO: Redirect URL QS 和前端確認
 func GetGoogleOAuthURL(c *gin.Context) {
 	var requestParams *getOAuthUrlQueryParmas
 
@@ -48,22 +49,26 @@ func GetGoogleOAuthURL(c *gin.Context) {
 		Message: controllers.SuccessMessage,
 		Data: getOAuthUrlResponsePayload{
 			URL: fmt.Sprintf(
-				"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=https://www.googleapis.com/auth/userinfo.email",
+				"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&state=%s&redirect_uri=%s&response_type=code&scope=https://www.googleapis.com/auth/userinfo.email",
 				configs.OAuth.Google.ClientID,
-				fmt.Sprintf("%s://%s/api/auth/o/google/%s", configs.Server.Protocol, configs.Server.Host, requestParams.Type),
+				requestParams.RedirectPath,
+				fmt.Sprintf(
+					"%s://%s/api/auth/o/google/%s",
+					configs.Server.Protocol,
+					configs.Server.Host,
+					requestParams.Type,
+				),
 			),
 		},
 	})
 }
 
-// TODO: Doc
-// TODO: 很多重複的 CODE 需要整理
-func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
+func getGoogleOAuthInfoByGrantCodeAndURLType(c *gin.Context, grantCode string, URLType string) (googleOAuthUserInfoResponsePayload, error) {
 	requestPayload, err := json.Marshal(map[string]string{
 		"client_id":     configs.OAuth.Google.ClientID,
 		"client_secret": configs.OAuth.Google.ClientSecret,
-		"code":          c.Query("code"),
-		"redirect_uri":  fmt.Sprintf("%s://%s/api/auth/o/google/login", configs.Server.Protocol, configs.Server.Host),
+		"code":          grantCode,
+		"redirect_uri":  fmt.Sprintf("%s://%s/api/auth/o/google/%s", configs.Server.Protocol, configs.Server.Host, URLType),
 		"grant_type":    "authorization_code",
 	})
 
@@ -73,7 +78,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	responseBody := bytes.NewBuffer(requestPayload)
@@ -86,7 +91,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	defer resp.Body.Close()
@@ -99,7 +104,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	accessTokenResp := googleOAuthAccessTokenResponsePayload{}
@@ -111,7 +116,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	client := &http.Client{}
@@ -123,7 +128,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	req.Header.Add("Authorization", fmt.Sprintf("%s %s", accessTokenResp.TokenType, accessTokenResp.AccessToken))
@@ -135,7 +140,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	defer fresp.Body.Close()
@@ -148,7 +153,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
-		return
+		return googleOAuthUserInfoResponsePayload{}, err
 	}
 
 	userInfoPayload := googleOAuthUserInfoResponsePayload{}
@@ -160,6 +165,31 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			Message: err,
 			Data:    nil,
 		})
+		return googleOAuthUserInfoResponsePayload{}, err
+	}
+
+	return userInfoPayload, nil
+}
+
+// TODO: Doc
+// TODO: 登入、註冊有很多重複的 CODE 需要整理
+func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
+	var requestParams googleOAuthRedirectURIForLoginQueryParmas
+
+	err := c.ShouldBindQuery(&requestParams)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestQueryParamsNotValid,
+			Message: controllers.ErrMessageRequestQueryParamsNotValid,
+			Data:    nil,
+		})
+		return
+	}
+
+	userInfoPayload, err := getGoogleOAuthInfoByGrantCodeAndURLType(c, requestParams.Code, "login")
+
+	if err != nil {
 		return
 	}
 
@@ -188,6 +218,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		}
 		// 執行登入
 		session := &models.Session{
+			AccountID:   am.ID,
 			AccountUUID: am.UUID,
 			Email:       am.Email,
 		}
@@ -219,11 +250,12 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			constants.RefreshTokenCookieInfo.Secure,
 			constants.RefreshTokenCookieInfo.HttpOnly,
 		)
-		c.JSON(http.StatusOK, controllers.JSONResponse{
-			Code:    controllers.SuccessCode,
-			Message: controllers.SuccessMessage,
-			Data:    nil,
-		})
+		c.Redirect(http.StatusMovedPermanently, fmt.Sprintf(
+			"%s://%s%s?success=1",
+			configs.Server.Protocol,
+			configs.Server.Host,
+			requestParams.State,
+		))
 		return
 	}
 
@@ -236,12 +268,14 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 	}
 	result = accountModel.ReadByEmail()
 	// TODO: Error handle email 存在時的情境
+	// TODO: 和前端討論 失敗後導轉回去時要帶的 Query
 	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		c.JSON(http.StatusConflict, controllers.JSONResponse{
-			Code:    "0",
-			Message: "m",
-			Data:    nil,
-		})
+		c.Redirect(http.StatusMovedPermanently, fmt.Sprintf(
+			"%s://%s%s?error=1",
+			configs.Server.Protocol,
+			configs.Server.Host,
+			requestParams.State,
+		))
 		return
 	}
 	// Email 不存在則自動註冊一個新帳號並關聯第三方登入
@@ -269,6 +303,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 
 	// 執行登入
 	session := &models.Session{
+		AccountID:   accountModel.ID,
 		AccountUUID: accountModel.UUID,
 		Email:       accountModel.Email,
 	}
@@ -300,6 +335,98 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		constants.RefreshTokenCookieInfo.Secure,
 		constants.RefreshTokenCookieInfo.HttpOnly,
 	)
+
+	c.Redirect(http.StatusMovedPermanently, fmt.Sprintf(
+		"%s://%s%s?success=1",
+		configs.Server.Protocol,
+		configs.Server.Host,
+		requestParams.State,
+	))
+}
+
+// TODO: Doc
+func GoogleOAuthRedirectURIForBind(c *gin.Context) {
+	var requestParams *googleOAuthRedirectURIForBindQueryParams
+
+	err := c.ShouldBindQuery(&requestParams)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestQueryParamsNotValid,
+			Message: controllers.ErrMessageRequestQueryParamsNotValid,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.Redirect(http.StatusMovedPermanently, fmt.Sprintf(
+		"%s://%s%s?grantCode=%s",
+		configs.Server.Protocol,
+		configs.Server.Host,
+		requestParams.RedirectPath,
+		requestParams.Code,
+	))
+}
+
+// TODO: Doc
+func GoogleOAuthBind(c *gin.Context) {
+	var requestPayload *googleOAuthBindRequestPayload
+
+	errResp, err := controllers.BindJSON(c, &requestPayload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+
+	userInfoPayload, err := getGoogleOAuthInfoByGrantCodeAndURLType(c, requestPayload.GrantCode, "bind")
+
+	if err != nil {
+		return
+	}
+
+	accountOAuthInfoModel := &models.AccountOauthInfo{
+		Email:    userInfoPayload.Email,
+		Provider: OAuthProviderName["google"],
+	}
+
+	// 是否有綁定過第三方登入方式
+	result := accountOAuthInfoModel.ReadByEmailAndProvider()
+
+	// DB query 沒遇到問題 (record not found) 代表已經有該 OAuth Info
+	if result.Error == nil {
+		c.JSON(http.StatusConflict, controllers.JSONResponse{
+			Code:    ErrCodeRequestRecordAlreadyExistWhenOAuthBinding,
+			Message: ErrMessageRequestRecordAlreadyExistWhenOAuthBinding,
+			Data:    nil,
+		})
+		return
+	}
+	// 執行到這裡代表 DB query 遇到問題，若問題不是預期的 (record not found) 則當作不明錯誤 直接噴 500
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+
+	accountOAuthInfoModel.AccountID = authPayload.AccountID
+	accountOAuthInfoModel.AccountUUID = authPayload.AccountUUID
+
+	result = accountOAuthInfoModel.Create()
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseCreateGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
@@ -312,6 +439,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 // @Tags        auth
 // @Accept      json
 // @Produce     json
+// @Param       accountId   query    uint   true "Account ID"
 // @Param       accountUuid query    string true "Account UUID"
 // @Param       email       query    string true "Account Email"
 // @Success     200         {object} controllers.JSONResponse{data=getAuthTokenByRefreshTokenResponsePayload}
@@ -345,6 +473,7 @@ func GetAuthTokenByRefreshToken(c *gin.Context) {
 		return
 	}
 	session := models.Session{
+		AccountID:   requestParams.AccountID,
 		AccountUUID: requestParams.AccountUUID,
 		Email:       requestParams.Email,
 	}
@@ -393,8 +522,9 @@ func GetAuthTokenByRefreshToken(c *gin.Context) {
 	}
 
 	jwtModel := &models.JWTToken{
-		AccountUUID: requestParams.AccountUUID,
-		Email:       requestParams.Email,
+		AccountID:   session.AccountID,
+		AccountUUID: session.AccountUUID,
+		Email:       session.Email,
 	}
 
 	authToken, err := jwtModel.Generate()

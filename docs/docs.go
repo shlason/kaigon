@@ -592,6 +592,13 @@ const docTemplate = `{
                 "summary": "取得 authToken",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "Account ID",
+                        "name": "accountId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
                         "type": "string",
                         "description": "Account UUID",
                         "name": "accountUuid",

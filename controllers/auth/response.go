@@ -13,5 +13,8 @@ const (
 	ErrCodeRequestHeaderCookieRefreshTokenFieldUnauthorized    string = "err-401-rhcrtfu"
 	ErrMessageRequestHeaderCookieRefreshTokenFieldUnauthorized string = "refresh token unauthorized, expired or undefined"
 
+	ErrCodeRequestRecordAlreadyExistWhenOAuthBinding    string = "err-409-rraewoab"
+	ErrMessageRequestRecordAlreadyExistWhenOAuthBinding string = "OAuth info already exist"
+
 	ErrCodeRequestOAuthAccessTokenGotError string = "err-500-roatge"
 )

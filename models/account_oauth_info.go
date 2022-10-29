@@ -17,3 +17,7 @@ func (accountOAuthInfo *AccountOauthInfo) Create() *gorm.DB {
 func (accountOAuthInfo *AccountOauthInfo) ReadByEmailAndProvider() *gorm.DB {
 	return db.First(&accountOAuthInfo, "email = ? AND provider = ?", accountOAuthInfo.Email, accountOAuthInfo.Provider)
 }
+
+func (a AccountOauthInfo) ReadAllByAccountUUID(accountUUID string, list *[]AccountOauthInfo) *gorm.DB {
+	return db.Where("account_uuid = ?", accountUUID).Find(&list)
+}

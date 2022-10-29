@@ -7,7 +7,8 @@ import (
 )
 
 type getOAuthUrlQueryParmas struct {
-	Type string `form:"type"`
+	Type         string `form:"type"`
+	RedirectPath string `form:"redirectPath"`
 }
 
 func (p *getOAuthUrlQueryParmas) check() (errResponse controllers.JSONResponse, isNotValid bool) {
@@ -40,7 +41,22 @@ type googleOAuthUserInfoResponsePayload struct {
 	Email string `json:"email"`
 }
 
+type googleOAuthRedirectURIForLoginQueryParmas struct {
+	Code  string `form:"code"`
+	State string `form:"form"`
+}
+
+type googleOAuthRedirectURIForBindQueryParams struct {
+	Code         string `form:"code"`
+	RedirectPath string `form:"redirectPath"`
+}
+
+type googleOAuthBindRequestPayload struct {
+	GrantCode string `json:"grantCode"`
+}
+
 type getAuthTokenByRefreshTokenRequestParamsPayload struct {
+	AccountID   uint   `form:"accountId"`
 	AccountUUID string `form:"accountUuid"`
 	Email       string `form:"email"`
 }

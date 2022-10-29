@@ -24,6 +24,10 @@ func (account *Account) ReadByUUID() *gorm.DB {
 	return db.First(&account, "uuid = ?", account.UUID)
 }
 
+func (account *Account) UpdateByEmailAndUUID(m map[string]interface{}) *gorm.DB {
+	return db.Model(&account).Where("uuid = ? AND email = ?", account.UUID, account.Email).Updates(m)
+}
+
 func (account *Account) UpdatePasswordByEmail(password string) *gorm.DB {
 	return db.Model(&account).Where("email = ?", account.Email).Update("password", password)
 }

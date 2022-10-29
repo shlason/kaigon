@@ -41,6 +41,7 @@ func init() {
 	d.AutoMigrate(&AccountProfile{})
 	d.AutoMigrate(&AccountSetting{})
 	d.AutoMigrate(&AccountSettingNotification{})
+	d.AutoMigrate(&AccountProfileSocialMedia{})
 
 	db = d
 	rdb = rd

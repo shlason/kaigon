@@ -163,6 +163,7 @@ func SignIn(c *gin.Context) {
 	}
 
 	session := &models.Session{
+		AccountID:   accountModel.ID,
 		AccountUUID: accountModel.UUID,
 		Email:       accountModel.Email,
 	}
@@ -487,6 +488,120 @@ func ResetPassword(c *gin.Context) {
 	}
 
 	authAccountResetPasswordModel.Delete()
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
+	})
+}
+
+// TODO: Doc
+func GetInfo(c *gin.Context) {
+	accountModel := &models.Account{
+		UUID: c.Param("accountUUID"),
+	}
+	result := accountModel.ReadByUUID()
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+				Code:    errCodeRequestParamAccountUUIDNotFound,
+				Message: errMessageRequestParamAccountUUIDNotFound,
+				Data:    nil,
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data: getInfoResponsePayload{
+			GormModelResponse: controllers.GormModelResponse{
+				ID:        accountModel.ID,
+				CreatedAt: accountModel.CreatedAt,
+				UpdatedAt: accountModel.UpdatedAt,
+				DeletedAt: accountModel.DeletedAt,
+			},
+			UUID:  accountModel.UUID,
+			Email: accountModel.Email,
+		},
+	})
+}
+
+// TODO: Doc
+func PatchInfo(c *gin.Context) {
+	var requestPayload *patchInfoRequestPayload
+
+	errResp, isNotValid := requestPayload.check()
+	if isNotValid {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+
+	if requestPayload.Password != nil {
+		hashPwd, err := bcrypt.GenerateFromPassword([]byte(*requestPayload.Password), 14)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+				Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+				Message: err,
+				Data:    nil,
+			})
+			return
+		}
+		*requestPayload.Password = string(hashPwd)
+	}
+
+	// 檢查 email 是否已存在
+	if requestPayload.Email != nil {
+		am := &models.Account{
+			Email: *requestPayload.Email,
+		}
+		r := am.ReadByEmail()
+		// 若 query 成功代表 email 重複了 (已存在)
+		if r.Error == nil {
+			c.JSON(http.StatusConflict, controllers.JSONResponse{
+				Code:    errCodeRequestPayloadEmailFieldDatabaseRecordAlreadyExist,
+				Message: errMessageRequestPayloadEmailFieldDatabaseRecordAlreadyExist,
+				Data:    nil,
+			})
+			return
+		}
+		// 來到這邊代表 query 發生錯誤，若錯誤不是 gorm.ErrRecordNotFound 代表發生不知名錯誤，直接噴 500
+		if !errors.Is(r.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+				Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+				Message: r.Error,
+				Data:    nil,
+			})
+			return
+		}
+	}
+
+	m := controllers.GetFilteredNilRequestPayloadMap(requestPayload)
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+	accountModel := &models.Account{
+		UUID:  authPayload.AccountUUID,
+		Email: authPayload.Email,
+	}
+
+	result := accountModel.UpdateByEmailAndUUID(m)
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseUpdateGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,

@@ -14,3 +14,11 @@ type AccountProfile struct {
 func (accountProfile *AccountProfile) Create() *gorm.DB {
 	return db.Create(&accountProfile)
 }
+
+func (accountProfile *AccountProfile) ReadByAccountUUID() *gorm.DB {
+	return db.First(&accountProfile, "account_uuid = ?", accountProfile.AccountUUID)
+}
+
+func (accountProfile *AccountProfile) UpdateByAccountUUID(m map[string]interface{}) *gorm.DB {
+	return db.Model(&accountProfile).Where("account_uuid = ?", accountProfile.AccountUUID).Updates(m)
+}
