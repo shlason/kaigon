@@ -40,9 +40,7 @@ func Connect(c *gin.Context) {
 	})()
 
 	go func() {
-		for {
-			fmt.Printf("Waiting for client: %s channel to get message\n", connInfo.AccountUUID)
-			msg := <-cli
+		for msg := range cli {
 			fmt.Printf("Actually get client: %s channel message: %v\n", connInfo.AccountUUID, msg)
 
 			fmt.Printf("Client: %s writing JSON to websocket\n", connInfo.AccountUUID)
@@ -52,6 +50,8 @@ func Connect(c *gin.Context) {
 				break
 			}
 			fmt.Printf("Client: %s writed JSON to websocket\n", connInfo.AccountUUID)
+
+			fmt.Printf("Waiting for client: %s channel to get message\n", connInfo.AccountUUID)
 		}
 	}()
 
