@@ -187,8 +187,8 @@ func getGoogleOAuthInfoByGrantCodeAndURLType(c *gin.Context, grantCode string, U
 // @Produce     json
 // @Param       code  query    string true "Google grant code (from google)"
 // @Param       state query    string true "Front end redirect path (from google OAuth state QS)"
-// @Success     302   {object} controllers.JSONResponse
-// @Failure     302   {object} controllers.JSONResponse
+// @Success     302
+// @Failure     302
 // @Failure     400   {object} controllers.JSONResponse
 // @Failure     500   {object} controllers.JSONResponse
 // @Router      /auth/o/google/login [get]
