@@ -21,8 +21,16 @@ import (
 
 const captchaCodeLength int = 8
 
-// TODO: Doc
-// TODO: Redirect URL QS 和前端確認
+// @Summary     取得 Google OAuth 相關 URL
+// @Description 帶上 type (login, bind) 來表示要取得的是登入用，還是綁定第三方登入用，以及 redirectPath 表示成功後所導轉的終點
+// @Tags        auth
+// @Accept      json
+// @Produce     json
+// @Param       type         query    string true "login or bind"
+// @Param       redirectPath query    string true "導轉終點"
+// @Success     200          {object} controllers.JSONResponse{data=getOAuthUrlResponsePayload}
+// @Failure     400          {object} controllers.JSONResponse
+// @Router      /auth/o/google/url [get]
 func GetGoogleOAuthURL(c *gin.Context) {
 	var requestParams *getOAuthUrlQueryParmas
 
@@ -171,8 +179,19 @@ func getGoogleOAuthInfoByGrantCodeAndURLType(c *gin.Context, grantCode string, U
 	return userInfoPayload, nil
 }
 
-// TODO: Doc
 // TODO: 登入、註冊有很多重複的 CODE 需要整理
+// @Summary     Google OAuth 登入且授權成功後所導轉的 URI
+// @Description 拿到 Google 給的 grant code 後再去和 Google 拿 access token，再用 access token 去拿該 user 的相關資訊 (scope)，若失敗會在 QS 加上 oauth_login_failed=1
+// @Tags        auth
+// @Accept      json
+// @Produce     json
+// @Param       code  query    string true "Google grant code (from google)"
+// @Param       state query    string true "Front end redirect path (from google OAuth state QS)"
+// @Success     302   {object} controllers.JSONResponse
+// @Failure     302   {object} controllers.JSONResponse
+// @Failure     400   {object} controllers.JSONResponse
+// @Failure     500   {object} controllers.JSONResponse
+// @Router      /auth/o/google/login [get]
 func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 	var requestParams googleOAuthRedirectURIForLoginQueryParmas
 
@@ -250,7 +269,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			constants.RefreshTokenCookieInfo.Secure,
 			constants.RefreshTokenCookieInfo.HttpOnly,
 		)
-		c.Redirect(http.StatusMovedPermanently, fmt.Sprintf(
+		c.Redirect(http.StatusFound, fmt.Sprintf(
 			"%s://%s%s?success=1",
 			configs.Server.Protocol,
 			configs.Server.Host,
@@ -270,8 +289,8 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 	// TODO: Error handle email 存在時的情境
 	// TODO: 和前端討論 失敗後導轉回去時要帶的 Query
 	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		c.Redirect(http.StatusMovedPermanently, fmt.Sprintf(
-			"%s://%s%s?error=1",
+		c.Redirect(http.StatusFound, fmt.Sprintf(
+			"%s://%s%s?oauth_login_failed=1",
 			configs.Server.Protocol,
 			configs.Server.Host,
 			requestParams.State,
@@ -336,7 +355,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		constants.RefreshTokenCookieInfo.HttpOnly,
 	)
 
-	c.Redirect(http.StatusMovedPermanently, fmt.Sprintf(
+	c.Redirect(http.StatusFound, fmt.Sprintf(
 		"%s://%s%s?success=1",
 		configs.Server.Protocol,
 		configs.Server.Host,
