@@ -280,7 +280,7 @@ func CreateVerifySession(c *gin.Context) {
 // @Param       accountUUID path  string true "Account UUID"
 // @Param       token       query string true "Session Token"
 // @Param       code        query string true "Verify Code"
-// @Success     301
+// @Success     302
 // @Failure     400 {object} controllers.JSONResponse
 // @Failure     500 {object} controllers.JSONResponse
 // @Router      /account/{accountUUID}/info/verification/email [get]
@@ -318,7 +318,7 @@ func VerifyWithEmail(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s://%s", configs.Server.Protocol, configs.Server.Host))
+	c.Redirect(http.StatusFound, fmt.Sprintf("%s://%s", configs.Server.Protocol, configs.Server.Host))
 }
 
 // @Summary     啟動重設密碼階段 (忘記密碼時)
