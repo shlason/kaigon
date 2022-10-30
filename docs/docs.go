@@ -442,8 +442,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "301": {
-                        "description": "Moved Permanently"
+                    "302": {
+                        "description": "Found"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -577,6 +577,111 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/o/google/login": {
+            "get": {
+                "description": "拿到 Google 給的 grant code 後再去和 Google 拿 access token，再用 access token 去拿該 user 的相關資訊 (scope)，若失敗會在 QS 加上 oauth_login_failed=1",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Google OAuth 登入且授權成功後所導轉的 URI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Google grant code (from google)",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Front end redirect path (from google OAuth state QS)",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Found"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/o/google/url": {
+            "get": {
+                "description": "帶上 type (login, bind) 來表示要取得的是登入用，還是綁定第三方登入用，以及 redirectPath 表示成功後所導轉的終點",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "取得 Google OAuth 相關 URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "login or bind",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "導轉終點",
+                        "name": "redirectPath",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JSONResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/auth.getOAuthUrlResponsePayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/session/token/refresh": {
             "get": {
                 "description": "使用 Cookie 中的 REFRESH_TOKEN field 來獲取 authToken",
@@ -667,6 +772,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.getOAuthUrlResponsePayload": {
+            "type": "object",
+            "properties": {
+                "url": {
                     "type": "string"
                 }
             }

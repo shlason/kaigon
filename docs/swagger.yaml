@@ -10,6 +10,11 @@ definitions:
       uuid:
         type: string
     type: object
+  auth.getOAuthUrlResponsePayload:
+    properties:
+      url:
+        type: string
+    type: object
   controllers.JSONResponse:
     properties:
       code:
@@ -105,8 +110,8 @@ paths:
       produces:
       - application/json
       responses:
-        "301":
-          description: Moved Permanently
+        "302":
+          description: Found
         "400":
           description: Bad Request
           schema:
@@ -389,6 +394,74 @@ paths:
           schema:
             $ref: '#/definitions/controllers.JSONResponse'
       summary: 刷新圖形驗證
+      tags:
+      - auth
+  /auth/o/google/login:
+    get:
+      consumes:
+      - application/json
+      description: 拿到 Google 給的 grant code 後再去和 Google 拿 access token，再用 access token
+        去拿該 user 的相關資訊 (scope)，若失敗會在 QS 加上 oauth_login_failed=1
+      parameters:
+      - description: Google grant code (from google)
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: Front end redirect path (from google OAuth state QS)
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: Google OAuth 登入且授權成功後所導轉的 URI
+      tags:
+      - auth
+  /auth/o/google/url:
+    get:
+      consumes:
+      - application/json
+      description: 帶上 type (login, bind) 來表示要取得的是登入用，還是綁定第三方登入用，以及 redirectPath 表示成功後所導轉的終點
+      parameters:
+      - description: login or bind
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: 導轉終點
+        in: query
+        name: redirectPath
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/auth.getOAuthUrlResponsePayload'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 取得 Google OAuth 相關 URL
       tags:
       - auth
   /auth/session/token/refresh:
