@@ -110,8 +110,8 @@ paths:
       produces:
       - application/json
       responses:
-        "301":
-          description: Moved Permanently
+        "302":
+          description: Found
         "400":
           description: Bad Request
           schema:
@@ -418,8 +418,6 @@ paths:
       responses:
         "302":
           description: Found
-          schema:
-            $ref: '#/definitions/controllers.JSONResponse'
         "400":
           description: Bad Request
           schema:
