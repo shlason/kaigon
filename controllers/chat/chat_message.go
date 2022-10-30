@@ -8,7 +8,7 @@ import (
 type chatMessagePayload struct {
 	From      string    `json:"from"`
 	To        string    `json:"to"`
-	Text      string    `json:"text"`
+	Content   string    `json:"content"`
 	Timestamp time.Time `json:"timestamp"`
 }
 

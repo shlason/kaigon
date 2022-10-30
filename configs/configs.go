@@ -22,6 +22,11 @@ type dbInfo struct {
 	Options  string
 }
 
+type mongoDbInfo struct {
+	OProtocol string
+	dbInfo
+}
+
 type redisDbInfo struct {
 	dbInfo
 	DB int
@@ -31,6 +36,7 @@ type database struct {
 	Protocol string
 	Name     string
 	Mysql    dbInfo
+	MongoDB  mongoDbInfo
 	Redis    redisDbInfo
 }
 
@@ -103,6 +109,12 @@ func init() {
 			Username: cfg.Section("database.mysql").Key("username").String(),
 			Password: cfg.Section("database.mysql").Key("password").String(),
 			Options:  cfg.Section("database.mysql").Key("options").String(),
+		},
+		MongoDB: mongoDbInfo{
+			OProtocol: cfg.Section("database.mongodb").Key("protocol").String(),
+			dbInfo: dbInfo{
+				Address: cfg.Section("database.mongodb").Key("address").String(),
+			},
 		},
 		Redis: redisDbInfo{
 			dbInfo: dbInfo{

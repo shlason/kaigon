@@ -62,10 +62,10 @@
                 console.log("Connection closed.");  
             };  
 
-            var heartbeatTimeInterval = setInterval(() => ws.send(JSON.stringify({
-                seq: Date.now(),
-                cmd: "ping"
-            })), 100)
+            // var heartbeatTimeInterval = setInterval(() => ws.send(JSON.stringify({
+            //     seq: Date.now(),
+            //     cmd: "ping"
+            // })), 100)
         }
 
         const connBtnEle = document.getElementById('connect-btn');
@@ -83,7 +83,7 @@
                 payload: {
                     from: document.getElementById('accountUUID').value,
                     to: document.getElementById('receiver').value,
-                    text: message,
+                    content: message,
                 }
             }));
             

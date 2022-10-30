@@ -6,15 +6,25 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/shlason/kaigon/configs"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
+type mongoDBCollections struct {
+	ChatMessages *mongo.Collection
+}
+
 var db *gorm.DB
 var rdb *redis.Client
+var mdb mongoDBCollections = mongoDBCollections{}
+
 var rctx context.Context = context.Background()
 
 func init() {
+	// MySQL
 	dsn := fmt.Sprintf(
 		"%s:%s@%s(%s)/%s?%s",
 		configs.Database.Mysql.Username,
@@ -30,12 +40,6 @@ func init() {
 		panic(err)
 	}
 
-	rd := redis.NewClient(&redis.Options{
-		Addr:     configs.Database.Redis.Address,
-		Password: configs.Database.Redis.Password,
-		DB:       configs.Database.Redis.DB,
-	})
-
 	d.AutoMigrate(&Account{})
 	d.AutoMigrate(&AccountOauthInfo{})
 	d.AutoMigrate(&AccountProfile{})
@@ -43,6 +47,32 @@ func init() {
 	d.AutoMigrate(&AccountSettingNotification{})
 	d.AutoMigrate(&AccountProfileSocialMedia{})
 
+	// MongoDB
+	md, err := mongo.Connect(
+		context.TODO(),
+		options.Client().ApplyURI(fmt.Sprintf("%s://%s", configs.Database.MongoDB.OProtocol, configs.Database.MongoDB.Address)),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if err := md.Ping(context.TODO(), readpref.Primary()); err != nil {
+		panic(err)
+	}
+
+	chatMessagesColl := md.Database(configs.Database.Name).Collection(ChatMessagesCollectionName)
+
+	// Redis
+	rd := redis.NewClient(&redis.Options{
+		Addr:     configs.Database.Redis.Address,
+		Password: configs.Database.Redis.Password,
+		DB:       configs.Database.Redis.DB,
+	})
+
 	db = d
 	rdb = rd
+	mdb = mongoDBCollections{
+		ChatMessages: chatMessagesColl,
+	}
 }
