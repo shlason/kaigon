@@ -442,8 +442,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "301": {
-                        "description": "Moved Permanently"
+                    "302": {
+                        "description": "Found"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -608,10 +608,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "302": {
-                        "description": "Found",
-                        "schema": {
-                            "$ref": "#/definitions/controllers.JSONResponse"
-                        }
+                        "description": "Found"
                     },
                     "400": {
                         "description": "Bad Request",
