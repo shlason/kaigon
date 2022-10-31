@@ -61,7 +61,7 @@ func init() {
 		panic(err)
 	}
 
-	chatMessagesColl := md.Database(configs.Database.Name).Collection(ChatMessagesCollectionName)
+	chatMessagesColl := md.Database(configs.Database.Name).Collection(chatMessagesCollectionName)
 
 	// Redis
 	rd := redis.NewClient(&redis.Options{

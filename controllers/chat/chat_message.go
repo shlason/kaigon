@@ -5,9 +5,14 @@ import (
 	"time"
 )
 
+var acceptCheatMessageTypes = map[string]string{
+	"text": "text",
+}
+
 type chatMessagePayload struct {
 	From      string    `json:"from"`
 	To        string    `json:"to"`
+	Type      string    `json:"type"`
 	Content   string    `json:"content"`
 	Timestamp time.Time `json:"timestamp"`
 }

@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const ChatMessagesCollectionName string = "chat_messages"
+const chatMessagesCollectionName string = "chat_messages"
 
 type ChatMessage struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty"`
