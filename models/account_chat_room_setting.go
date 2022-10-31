@@ -6,7 +6,7 @@ import (
 
 type AccountChatRoomSetting struct {
 	gorm.Model
-	AccountChatRoomID   uint
+	AccountChatRoomID   uint `gorm:"unique; not null;"`
 	Theme               string
-	EnabledNotification bool
+	EnabledNotification bool `gorm:"default:true; not null;"`
 }

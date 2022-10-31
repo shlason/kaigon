@@ -8,7 +8,7 @@ import (
 
 type AccountChatRoom struct {
 	gorm.Model
-	AccountUUID string
-	ChatRoomID  uint
+	ChatRoomID  uint   `gorm:"not null;"`
+	AccountUUID string `gorm:"not null;"`
 	LastSeenAt  time.Time
 }
