@@ -11,3 +11,7 @@ type ChatRoomSetting struct {
 	Name       string
 	Avatar     string
 }
+
+func (crs *ChatRoomSetting) Create() *gorm.DB {
+	return db.Create(&crs)
+}

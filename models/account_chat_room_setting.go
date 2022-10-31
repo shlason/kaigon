@@ -10,3 +10,7 @@ type AccountChatRoomSetting struct {
 	Theme               string
 	EnabledNotification bool `gorm:"default:true; not null;"`
 }
+
+func (acrs *AccountChatRoomSetting) Create() *gorm.DB {
+	return db.Create(&acrs)
+}

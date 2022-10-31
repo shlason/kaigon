@@ -12,3 +12,7 @@ type AccountChatRoom struct {
 	AccountUUID string `gorm:"not null;"`
 	LastSeenAt  time.Time
 }
+
+func (acr *AccountChatRoom) Create() *gorm.DB {
+	return db.Create(&acr)
+}
