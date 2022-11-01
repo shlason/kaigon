@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/shlason/kaigon/controllers"
+	"github.com/shlason/kaigon/models"
 )
 
 type client chan message
@@ -57,7 +58,22 @@ func clientManager() {
 					fmt.Println("chatMsgPayload.Parse got error")
 					fmt.Println(err)
 				}
-				fmt.Println(chatMsgPayload)
+
+				chatMsgModel := &models.ChatMessage{
+					From:      chatMsgPayload.From,
+					To:        chatMsgPayload.To,
+					Content:   chatMsgPayload.Content,
+					Timestamp: chatMsgPayload.Timestamp,
+				}
+
+				result, err := chatMsgModel.InsertOne()
+
+				if err != nil {
+					fmt.Println("insert one got error: ", err)
+				}
+
+				fmt.Println(result.InsertedID)
+
 				toCli, ok := clients[chatMsgPayload.To]
 				// TODO: 接收方不在線上時的處理
 				if !ok {
@@ -73,7 +89,7 @@ func clientManager() {
 					Payload: chatMessagePayload{
 						From:      chatMsgPayload.From,
 						To:        chatMsgPayload.To,
-						Text:      chatMsgPayload.Text,
+						Content:   chatMsgPayload.Content,
 						Timestamp: time.Now().UTC(),
 					},
 				}
