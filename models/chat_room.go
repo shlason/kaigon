@@ -10,6 +10,9 @@ type ChatRoom struct {
 	gorm.Model
 	Type             string `gorm:"not null;"`
 	MaximumMemberNum int    `gorm:"default:50;not null;"`
+	Emoji            string
+	Name             string
+	Avatar           string
 }
 
 func (cr *ChatRoom) Create() *gorm.DB {

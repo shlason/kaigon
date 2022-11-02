@@ -15,18 +15,8 @@ type getAllChatRoomResponse struct {
 
 func getAllChatRoomHandler(msg message) {
 	var chatRoomMembers []models.ChatRoomMember
-	var chatRoomMemberInfos []models.ChatRoomMember
 
-	result := models.ChatRoomMember{}.Testing(msg.Self.AccountUUID, &chatRoomMemberInfos)
-
-	if result.Error != nil {
-		fmt.Println("ChatRoomMemberInfo error: ", result.Error)
-		return
-	}
-
-	fmt.Println(chatRoomMemberInfos)
-
-	result = models.ChatRoomMember{}.ReadAllByAccountUUID(msg.Self.AccountUUID, &chatRoomMembers)
+	result := models.ChatRoomMember{}.ReadAllByAccountUUID(msg.Self.AccountUUID, &chatRoomMembers)
 	fmt.Println(result.Error, msg.Self.AccountUUID)
 	// TODO: 沒有聊天室時
 	if result.Error == gorm.ErrRecordNotFound {

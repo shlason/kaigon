@@ -47,9 +47,7 @@ func init() {
 	d.AutoMigrate(&AccountSettingNotification{})
 	d.AutoMigrate(&AccountProfileSocialMedia{})
 	d.AutoMigrate(&ChatRoom{})
-	d.AutoMigrate(&ChatRoomSetting{})
 	d.AutoMigrate(&ChatRoomMember{})
-	d.AutoMigrate(&ChatRoomMemberSetting{})
 
 	// MongoDB
 	md, err := mongo.Connect(
