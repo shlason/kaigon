@@ -2,11 +2,6 @@ package chat
 
 import (
 	"fmt"
-	"net/http"
-	"time"
-
-	"github.com/shlason/kaigon/controllers"
-	"github.com/shlason/kaigon/models"
 )
 
 type client chan message
@@ -34,66 +29,23 @@ func clientManager() {
 		select {
 		case msg := <-messages:
 			// TODO: 回傳的 status message, code 需要討論和統整
-			if msg.Cmd == acceptCmds["ping"] {
-				*msg.Self <- message{
-					Seq:           msg.Seq,
-					Cmd:           acceptCmds["pong"],
-					StatusCode:    http.StatusOK,
-					StatusMessage: controllers.SuccessMessage,
-					Payload:       nil,
-				}
-				continue
-			} else if msg.Cmd == acceptCmds["chat_message"] {
-				*msg.Self <- message{
-					Seq:           msg.Seq,
-					Cmd:           acceptCmds["received"],
-					StatusCode:    http.StatusOK,
-					StatusMessage: controllers.SuccessMessage,
-					Payload:       nil,
-				}
+			errResp, isNotValid := msg.Check()
 
-				chatMsgPayload, err := chatMessagePayload{}.Parse(msg.Payload)
+			if isNotValid {
+				*msg.Self <- errResp
+				return
+			}
 
-				if err != nil {
-					fmt.Println("chatMsgPayload.Parse got error")
-					fmt.Println(err)
-				}
-
-				chatMsgModel := &models.ChatMessage{
-					From:      chatMsgPayload.From,
-					To:        chatMsgPayload.To,
-					Content:   chatMsgPayload.Content,
-					Timestamp: chatMsgPayload.Timestamp,
-				}
-
-				result, err := chatMsgModel.InsertOne()
-
-				if err != nil {
-					fmt.Println("insert one got error: ", err)
-				}
-
-				fmt.Println(result.InsertedID)
-
-				toCli, ok := clients[chatMsgPayload.To]
-				// TODO: 接收方不在線上時的處理
-				if !ok {
-					fmt.Printf("Friend: %s offline\n", chatMsgPayload.To)
-					continue
-				}
-				fmt.Printf("message sending from: %s, to: %s\n", chatMsgPayload.From, chatMsgPayload.To)
-				toCli <- message{
-					Seq:           msg.Seq,
-					Cmd:           acceptCmds["chat_message"],
-					StatusCode:    http.StatusOK,
-					StatusMessage: controllers.SuccessMessage,
-					Payload: chatMessagePayload{
-						From:      chatMsgPayload.From,
-						To:        chatMsgPayload.To,
-						Content:   chatMsgPayload.Content,
-						Timestamp: time.Now().UTC(),
-					},
-				}
-				fmt.Printf("message sended from: %s, to: %s\n", chatMsgPayload.From, chatMsgPayload.To)
+			switch msg.Cmd {
+			case acceptRequestCmds["ping"]:
+				PingHandler(msg)
+			case acceptRequestCmds["get_all_chat_room"]:
+			case acceptRequestCmds["get_chat_message"]:
+			case acceptRequestCmds["send_chat_message"]:
+				sendChatMessageHandler(clients, msg)
+			case acceptRequestCmds["get_chat_room_setting"]:
+			case acceptRequestCmds["update_chat_room_setting"]:
+			case acceptRequestCmds["update_chat_room_account_setting"]:
 			}
 
 		case connInfo := <-clientConnect:
