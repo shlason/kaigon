@@ -32,7 +32,7 @@ func clientManager() {
 			errResp, isNotValid := msg.Check()
 
 			if isNotValid {
-				*msg.Self <- errResp
+				*msg.Self.Channel <- errResp
 				return
 			}
 
@@ -40,6 +40,7 @@ func clientManager() {
 			case acceptRequestCmds["ping"]:
 				PingHandler(msg)
 			case acceptRequestCmds["get_all_chat_room"]:
+				getAllChatRoomHandler(msg)
 			case acceptRequestCmds["get_chat_message"]:
 			case acceptRequestCmds["send_chat_message"]:
 				sendChatMessageHandler(clients, msg)

@@ -4,13 +4,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type AccountChatRoomSetting struct {
+type ChatRoomMemberSetting struct {
 	gorm.Model
-	AccountChatRoomID   uint `gorm:"unique; not null;"`
+	ChatRoomMemberID    uint `gorm:"unique; not null;"`
 	Theme               string
 	EnabledNotification bool `gorm:"default:true; not null;"`
 }
 
-func (acrs *AccountChatRoomSetting) Create() *gorm.DB {
+func (acrs *ChatRoomMemberSetting) Create() *gorm.DB {
 	return db.Create(&acrs)
 }

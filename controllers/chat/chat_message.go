@@ -45,7 +45,7 @@ type sendChatMessageResponsePayload struct {
 }
 
 func sendChatMessageHandler(clients map[string]client, msg message) {
-	*msg.Self <- message{
+	*msg.Self.Channel <- message{
 		Seq:           msg.Seq,
 		Cmd:           acceptResponseCmds["received"],
 		StatusCode:    http.StatusOK,
@@ -74,9 +74,9 @@ func sendChatMessageHandler(clients map[string]client, msg message) {
 		fmt.Println("insert one got error: ", err)
 	}
 
-	var accountChatRooms *[]models.AccountChatRoom
+	var chatRoomMembers []models.ChatRoomMember
 
-	result := models.AccountChatRoom{}.ReadAllByChatRoomID(sendChatMsgReqPayload.To, accountChatRooms)
+	result := models.ChatRoomMember{}.ReadAllByChatRoomID(sendChatMsgReqPayload.To, &chatRoomMembers)
 
 	// TODO: 取得聊天室所有成員資訊時噴錯的處理
 	if result.Error != nil {
@@ -84,11 +84,11 @@ func sendChatMessageHandler(clients map[string]client, msg message) {
 		return
 	}
 
-	for _, accountChatRoom := range *accountChatRooms {
-		toCli, ok := clients[accountChatRoom.AccountUUID]
+	for _, chatRoomMember := range chatRoomMembers {
+		toCli, ok := clients[chatRoomMember.AccountUUID]
 		// TODO: 接收方不在線上時的處理
 		if !ok {
-			fmt.Printf("Friend: %s offline\n", accountChatRoom.AccountUUID)
+			fmt.Printf("Friend: %s offline\n", chatRoomMember.AccountUUID)
 			return
 		}
 		fmt.Printf("message sending from: %s, to: %d\n", sendChatMsgReqPayload.From, sendChatMsgReqPayload.To)

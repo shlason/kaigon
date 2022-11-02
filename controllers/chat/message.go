@@ -23,13 +23,18 @@ var acceptResponseCmds = map[string]string{
 	"received":                         "received",
 }
 
+type selfInfo struct {
+	Channel     *client
+	AccountUUID string
+}
+
 type message struct {
-	Self          *client     `json:",omitempty"`
+	Self          selfInfo    `json:",omitempty"`
 	Seq           int         `json:"seq"`
 	Cmd           string      `json:"cmd"`
 	CustomCode    string      `json:"customCode"`
 	StatusCode    int         `json:"statusCode"`
-	StatusMessage string      `json:"statusMessage"`
+	StatusMessage interface{} `json:"statusMessage"`
 	Payload       interface{} `json:"payload"`
 }
 

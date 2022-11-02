@@ -7,7 +7,7 @@ import (
 )
 
 func PingHandler(msg message) {
-	*msg.Self <- message{
+	*msg.Self.Channel <- message{
 		Seq:           msg.Seq,
 		Cmd:           acceptResponseCmds["pong"],
 		StatusCode:    http.StatusOK,

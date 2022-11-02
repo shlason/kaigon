@@ -68,7 +68,10 @@ func Connect(c *gin.Context) {
 			break
 		}
 
-		msg.Self = &cli
+		msg.Self = selfInfo{
+			Channel:     &cli,
+			AccountUUID: accountUUID,
+		}
 
 		fmt.Printf("Client: %s passing msg to messages channel\n", connInfo.AccountUUID)
 		messages <- msg
