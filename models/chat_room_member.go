@@ -1,6 +1,7 @@
 package models
 
 import (
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -25,4 +26,14 @@ func (acr ChatRoomMember) ReadAllByChatRoomID(chatRoomID uint, list *[]ChatRoomM
 
 func (acr ChatRoomMember) ReadAllByAccountUUID(accountUUID string, list *[]ChatRoomMember) *gorm.DB {
 	return db.Where("account_uuid = ?", accountUUID).Find(&list)
+}
+
+func (acr ChatRoomMember) ReadAllByChatRoomIDs(ids []interface{}, list *[]ChatRoomMember) *gorm.DB {
+	var fields []string
+
+	for i := 0; i < len(ids); i++ {
+		fields = append(fields, "chat_room_id = ?")
+	}
+
+	return db.Where(strings.Join(fields, " OR "), ids...).Find(&list)
 }

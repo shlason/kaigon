@@ -3,20 +3,37 @@ package chat
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
 	"gorm.io/gorm"
 )
 
-type getAllChatRoomResponse struct {
-	Data []models.ChatRoom
+type chatRoomMemberResponse struct {
+	AccountUUID         string
+	Theme               string
+	EnabledNotification bool
+	LastSeenAt          time.Time
 }
 
-func getAllChatRoomHandler(msg message) {
-	var chatRoomMembers []models.ChatRoomMember
+type chatRoomInfoResponse struct {
+	ID               uint                     `json:"id"`
+	Type             string                   `json:"type"`
+	MaximumMemberNum int                      `json:"maximumMemberNum"`
+	Emoji            string                   `json:"emoji"`
+	Name             string                   `json:"name"`
+	Avatar           string                   `json:"avatar"`
+	Members          []chatRoomMemberResponse `json:"members"`
+}
 
-	result := models.ChatRoomMember{}.ReadAllByAccountUUID(msg.Self.AccountUUID, &chatRoomMembers)
+type getAllChatRoomResponse []chatRoomInfoResponse
+
+func getAllChatRoomHandler(msg message) {
+	// 使用者所擁有的聊天室列表
+	var availableChatRooms []models.ChatRoomMember
+
+	result := models.ChatRoomMember{}.ReadAllByAccountUUID(msg.Self.AccountUUID, &availableChatRooms)
 	fmt.Println(result.Error, msg.Self.AccountUUID)
 	// TODO: 沒有聊天室時
 	if result.Error == gorm.ErrRecordNotFound {
@@ -26,7 +43,7 @@ func getAllChatRoomHandler(msg message) {
 			CustomCode:    controllers.SuccessCode,
 			StatusCode:    http.StatusOK,
 			StatusMessage: controllers.SuccessMessage,
-			Payload:       []models.ChatRoom{},
+			Payload:       getAllChatRoomResponse{},
 		}
 		return
 	}
@@ -38,21 +55,19 @@ func getAllChatRoomHandler(msg message) {
 			CustomCode:    controllers.ErrCodeServerDatabaseQueryGotError,
 			StatusCode:    http.StatusInternalServerError,
 			StatusMessage: result.Error,
-			Payload:       []models.ChatRoom{},
+			Payload:       getAllChatRoomResponse{},
 		}
 		return
 	}
 
-	var chatRoomIds []interface{}
-	var chatRooms []models.ChatRoom
+	var availableChatRoomIds []interface{}
+	var chatRoomInfoList []models.ChatRoom
 
-	fmt.Println("chat room members: ", len(chatRoomMembers))
-
-	for _, chatRoomMember := range chatRoomMembers {
-		chatRoomIds = append(chatRoomIds, chatRoomMember.ChatRoomID)
+	for _, chatRoomMember := range availableChatRooms {
+		availableChatRoomIds = append(availableChatRoomIds, chatRoomMember.ChatRoomID)
 	}
 
-	result = models.ChatRoom{}.ReadByIDs(chatRoomIds, &chatRooms)
+	result = models.ChatRoom{}.ReadAllByIDs(availableChatRoomIds, &chatRoomInfoList)
 
 	// TODO: 發生意外錯誤時
 	if result.Error != nil {
@@ -60,5 +75,49 @@ func getAllChatRoomHandler(msg message) {
 		return
 	}
 
-	fmt.Println(chatRooms, len(chatRooms))
+	var chatRoomMembers []models.ChatRoomMember
+
+	result = models.ChatRoomMember{}.ReadAllByChatRoomIDs(availableChatRoomIds, &chatRoomMembers)
+
+	// TODO: 發生意外錯誤時
+	if result.Error != nil {
+		fmt.Println(result.Error)
+		return
+	}
+
+	var chatRoomMembersMapping = make(map[uint][]chatRoomMemberResponse)
+
+	for _, chatRoomMember := range chatRoomMembers {
+		chatRoomMembersMapping[chatRoomMember.ChatRoomID] = append(
+			chatRoomMembersMapping[chatRoomMember.ChatRoomID],
+			chatRoomMemberResponse{
+				AccountUUID:         chatRoomMember.AccountUUID,
+				Theme:               chatRoomMember.Theme,
+				EnabledNotification: chatRoomMember.EnabledNotification,
+				LastSeenAt:          chatRoomMember.LastSeenAt,
+			},
+		)
+	}
+
+	var response getAllChatRoomResponse
+
+	for _, chatRoomInfo := range chatRoomInfoList {
+		response = append(response, chatRoomInfoResponse{
+			ID:               chatRoomInfo.ID,
+			Type:             chatRoomInfo.Type,
+			MaximumMemberNum: chatRoomInfo.MaximumMemberNum,
+			Emoji:            chatRoomInfo.Emoji,
+			Name:             chatRoomInfo.Name,
+			Avatar:           chatRoomInfo.Avatar,
+			Members:          chatRoomMembersMapping[chatRoomInfo.ID],
+		})
+	}
+	*msg.Self.Channel <- message{
+		Seq:           msg.Seq,
+		Cmd:           msg.Cmd,
+		CustomCode:    controllers.SuccessCode,
+		StatusCode:    http.StatusOK,
+		StatusMessage: controllers.SuccessMessage,
+		Payload:       response,
+	}
 }

@@ -28,7 +28,7 @@ type ChatRoomInfo struct {
 	Avatar           string
 }
 
-func (ChatRoom) ReadByIDs(ids []interface{}, list *[]ChatRoom) *gorm.DB {
+func (ChatRoom) ReadAllByIDs(ids []interface{}, list *[]ChatRoom) *gorm.DB {
 	var fields []string
 
 	for i := 0; i < len(ids); i++ {
