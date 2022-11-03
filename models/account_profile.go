@@ -1,6 +1,10 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"strings"
+
+	"gorm.io/gorm"
+)
 
 type AccountProfile struct {
 	gorm.Model
@@ -21,4 +25,14 @@ func (accountProfile *AccountProfile) ReadByAccountUUID() *gorm.DB {
 
 func (accountProfile *AccountProfile) UpdateByAccountUUID(m map[string]interface{}) *gorm.DB {
 	return db.Model(&accountProfile).Where("account_uuid = ?", accountProfile.AccountUUID).Updates(m)
+}
+
+func (AccountProfile) DeleteByAccountIDs(ids []interface{}) *gorm.DB {
+	var fields []string
+
+	for i := 0; i < len(ids); i++ {
+		fields = append(fields, "account_id = ?")
+	}
+
+	return db.Where(strings.Join(fields, " OR "), ids...).Delete(&AccountProfile{})
 }

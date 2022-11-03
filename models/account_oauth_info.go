@@ -1,6 +1,10 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"strings"
+
+	"gorm.io/gorm"
+)
 
 type AccountOauthInfo struct {
 	gorm.Model
@@ -20,4 +24,14 @@ func (accountOAuthInfo *AccountOauthInfo) ReadByEmailAndProvider() *gorm.DB {
 
 func (a AccountOauthInfo) ReadAllByAccountUUID(accountUUID string, list *[]AccountOauthInfo) *gorm.DB {
 	return db.Where("account_uuid = ?", accountUUID).Find(&list)
+}
+
+func (AccountOauthInfo) DeleteByAccountIDs(ids []interface{}) *gorm.DB {
+	var fields []string
+
+	for i := 0; i < len(ids); i++ {
+		fields = append(fields, "account_id = ?")
+	}
+
+	return db.Where(strings.Join(fields, " OR "), ids...).Delete(&AccountOauthInfo{})
 }

@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -35,4 +36,14 @@ func (accountProfileSocialMedia *AccountProfileSocialMedia) UpdateOrCreateByAcco
 
 func (a AccountProfileSocialMedia) ReadAllByAccountUUID(accountUUID string, list *[]AccountProfileSocialMedia) *gorm.DB {
 	return db.Where("account_uuid = ?", accountUUID).Find(&list)
+}
+
+func (AccountProfileSocialMedia) DeleteByAccountIDs(ids []interface{}) *gorm.DB {
+	var fields []string
+
+	for i := 0; i < len(ids); i++ {
+		fields = append(fields, "account_id = ?")
+	}
+
+	return db.Where(strings.Join(fields, " OR "), ids...).Delete(&AccountProfileSocialMedia{})
 }
