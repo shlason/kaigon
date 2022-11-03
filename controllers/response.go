@@ -31,6 +31,7 @@ const (
 	ErrCodeServerDatabaseCreateGotError   string = "err-500-sdbcge"
 	ErrCodeServerDatabaseQueryGotError    string = "err-500-sdbqge"
 	ErrCodeServerDatabaseUpdateGotError   string = "err-500-sdbuge"
+	ErrCodeServerDatabaseDeleteGotError   string = "err-500-sdbdge"
 	ErrCodeServerRedisSetNXKeyGotError    string = "err-500-srsnxkge"
 	ErrCodeServerRedisSetKeyGotError      string = "err-500-srskge"
 	ErrCodeServerRedisGetKeyGotError      string = "err-500-srgkge"

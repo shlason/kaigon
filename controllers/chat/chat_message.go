@@ -2,23 +2,28 @@ package chat
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
 	"time"
+
+	"github.com/shlason/kaigon/controllers"
+	"github.com/shlason/kaigon/models"
 )
 
 var acceptCheatMessageTypes = map[string]string{
 	"text": "text",
 }
 
-type chatMessagePayload struct {
+type sendChatMessageRequestPayload struct {
 	From      string    `json:"from"`
-	To        string    `json:"to"`
+	To        uint      `json:"to"`
 	Type      string    `json:"type"`
 	Content   string    `json:"content"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
-func (c chatMessagePayload) Parse(data interface{}) (chatMessagePayload, error) {
-	p := chatMessagePayload{}
+func (c sendChatMessageRequestPayload) Parse(data interface{}) (sendChatMessageRequestPayload, error) {
+	p := sendChatMessageRequestPayload{}
 
 	bytes, err := json.Marshal(data)
 
@@ -29,4 +34,76 @@ func (c chatMessagePayload) Parse(data interface{}) (chatMessagePayload, error) 
 	err = json.Unmarshal(bytes, &p)
 
 	return p, err
+}
+
+type sendChatMessageResponsePayload struct {
+	From      string    `json:"from"`
+	To        uint      `json:"to"`
+	Type      string    `json:"type"`
+	Content   string    `json:"content"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+func sendChatMessageHandler(clients map[string]client, msg message) {
+	*msg.Self.Channel <- message{
+		Seq:           msg.Seq,
+		Cmd:           acceptResponseCmds["received"],
+		StatusCode:    http.StatusOK,
+		StatusMessage: controllers.SuccessMessage,
+		Payload:       nil,
+	}
+
+	sendChatMsgReqPayload, err := sendChatMessageRequestPayload{}.Parse(msg.Payload)
+
+	if err != nil {
+		fmt.Println("chatMsgPayload.Parse got error")
+		fmt.Println(err)
+	}
+
+	chatMsgModel := &models.ChatMessage{
+		From:      sendChatMsgReqPayload.From,
+		To:        sendChatMsgReqPayload.To,
+		Type:      sendChatMsgReqPayload.Type,
+		Content:   sendChatMsgReqPayload.Content,
+		Timestamp: sendChatMsgReqPayload.Timestamp,
+	}
+
+	_, err = chatMsgModel.InsertOne()
+
+	if err != nil {
+		fmt.Println("insert one got error: ", err)
+	}
+
+	var chatRoomMembers []models.ChatRoomMember
+
+	result := models.ChatRoomMember{}.ReadAllByChatRoomID(sendChatMsgReqPayload.To, &chatRoomMembers)
+
+	// TODO: 取得聊天室所有成員資訊時噴錯的處理
+	if result.Error != nil {
+		fmt.Printf("ReadAllByChatRoomID got error: %s\n", result.Error)
+		return
+	}
+
+	for _, chatRoomMember := range chatRoomMembers {
+		toCli, ok := clients[chatRoomMember.AccountUUID]
+		// TODO: 接收方不在線上時的處理
+		if !ok {
+			fmt.Printf("Friend: %s offline\n", chatRoomMember.AccountUUID)
+			return
+		}
+		fmt.Printf("message sending from: %s, to: %d\n", sendChatMsgReqPayload.From, sendChatMsgReqPayload.To)
+		toCli <- message{
+			Seq:           msg.Seq,
+			Cmd:           acceptResponseCmds["send_chat_message"],
+			StatusCode:    http.StatusOK,
+			StatusMessage: controllers.SuccessMessage,
+			Payload: sendChatMessageResponsePayload{
+				From:      sendChatMsgReqPayload.From,
+				To:        sendChatMsgReqPayload.To,
+				Content:   sendChatMsgReqPayload.Content,
+				Timestamp: time.Now().UTC(),
+			},
+		}
+		fmt.Printf("message sended from: %s, to: %d\n", sendChatMsgReqPayload.From, sendChatMsgReqPayload.To)
+	}
 }

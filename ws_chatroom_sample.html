@@ -30,12 +30,13 @@
     <label for="message">Message:</label>
     <input type="text" id="message" name="message">
     <button id="send-message-btn">Submit</button>
+    <button id="get-caht-room-btn-ingo">Get Chat Room Info</button>
     <script>
         var ws
         function connect() {
             const accountUUID = document.getElementById('accountUUID').value
 
-            ws = new WebSocket(`ws://localhost:8080/api/chat?accountUuid=${accountUUID}`);  
+            ws = new WebSocket(`ws://localhost:8080/api/chat/ws?accountUuid=${accountUUID}`);  
             // onOpen被觸發時, 去嘗試連線 
             ws.onopen = function(evt) {  
                 console.log("Connection open ...");  
@@ -70,7 +71,15 @@
 
         const connBtnEle = document.getElementById('connect-btn');
         const sendMsgBtnEle = document.getElementById('send-message-btn');
+        const getChatRoomInfoBtn = document.getElementById('get-caht-room-btn-ingo');
 
+        getChatRoomInfoBtn.addEventListener("click", () => {
+            ws.send(JSON.stringify({
+                seq: Date.now(),
+                cmd: "get_all_chat_room",
+                payload: {}
+            }))
+        })
         connBtnEle.addEventListener("click", connect);
         sendMsgBtnEle.addEventListener("click", () => {
             const message = document.getElementById('message').value
@@ -79,7 +88,7 @@
 
             ws.send(JSON.stringify({
                 seq: Date.now(),
-                cmd: "chat_message",
+                cmd: "send_chat_message",
                 payload: {
                     from: document.getElementById('accountUUID').value,
                     to: document.getElementById('receiver').value,

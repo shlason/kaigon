@@ -15,7 +15,8 @@ const chatMessagesCollectionName string = "chat_messages"
 type ChatMessage struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty"`
 	From      string
-	To        string
+	To        uint
+	Type      string
 	Content   string
 	Timestamp time.Time
 }

@@ -1,6 +1,10 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"strings"
+
+	"gorm.io/gorm"
+)
 
 type AccountSettingNotification struct {
 	ID                      uint   `gorm:"primarykey"`
@@ -25,4 +29,14 @@ func (accountSettingNotification *AccountSettingNotification) ReadByAccountUUID(
 
 func (accountSettingNotification *AccountSettingNotification) UpdateByAccountUUID(m map[string]interface{}) *gorm.DB {
 	return db.Model(&accountSettingNotification).Where("account_uuid = ?", accountSettingNotification.AccountUUID).Updates(m)
+}
+
+func (AccountSettingNotification) DeleteByAccountIDs(ids []interface{}) *gorm.DB {
+	var fields []string
+
+	for i := 0; i < len(ids); i++ {
+		fields = append(fields, "account_id = ?")
+	}
+
+	return db.Unscoped().Where(strings.Join(fields, " OR "), ids...).Delete(&AccountSettingNotification{})
 }
