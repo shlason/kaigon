@@ -1023,6 +1023,25 @@ paths:
       summary: 取得 authToken
       tags:
       - auth
+  /develop/utils/account/delete:
+    get:
+      consumes:
+      - application/json
+      description: 刪除所有開發者的所有帳號資料 (直接在網頁爆打這支就可以刪掉資料了)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 刪除所有開發者的所有帳號資料
+      tags:
+      - useful_utils_when_developing
   /image:
     post:
       consumes:
