@@ -19,7 +19,18 @@ import (
 	"github.com/shlason/kaigon/controllers"
 )
 
-// TODO: Doc
+// @Summary     上傳圖片到 S3
+// @Description 上傳圖片到 S3
+// @Tags        image
+// @Accept      mpfd
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       file   formData multipart.FileHeader true "圖片檔案目前只支援 (png, jpg, jpeg, gif)"
+// @Param       folder formData string                true "S3 Bucket 路徑目前只接收 (account, article, chat)，屆時請依照不同類型的性質來區分路徑"
+// @Success     200    {object} controllers.JSONResponse{Data=uploadToS3ResponsePayload}
+// @Failure     400    {object} controllers.JSONResponse
+// @Failure     500    {object} controllers.JSONResponse
+// @Router      /image [post]
 func UploadToS3(c *gin.Context) {
 	var requestPayload *uploadToS3RequestPayload
 

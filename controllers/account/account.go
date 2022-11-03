@@ -496,7 +496,16 @@ func ResetPassword(c *gin.Context) {
 	})
 }
 
-// TODO: Doc
+// @Summary     取得 Account 資訊
+// @Description 取得 Account 相關資訊 (UUID, Email)
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Param       accountUUID path     string true "Account UUID"
+// @Success     200         {object} controllers.JSONResponse{Data=getInfoResponsePayload}
+// @Failure     400         {object} controllers.JSONResponse
+// @Failure     500         {object} controllers.JSONResponse
+// @Router      /account/:accountUUID/info [get]
 func GetInfo(c *gin.Context) {
 	accountModel := &models.Account{
 		UUID: c.Param("accountUUID"),
@@ -536,7 +545,19 @@ func GetInfo(c *gin.Context) {
 	})
 }
 
-// TODO: Doc
+// @Summary     更新 Account 資訊
+// @Description 更新 Account 相關資訊 (UUID, Email)
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       email    body     string false "Account Email"
+// @Param       password body     string false "Account Password"
+// @Success     200      {object} controllers.JSONResponse
+// @Failure     400      {object} controllers.JSONResponse
+// @Failure     409      {object} controllers.JSONResponse
+// @Failure     500      {object} controllers.JSONResponse
+// @Router      /account/:accountUUID/info [patch]
 func PatchInfo(c *gin.Context) {
 	var requestPayload *patchInfoRequestPayload
 

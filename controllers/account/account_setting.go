@@ -10,7 +10,16 @@ import (
 	"gorm.io/gorm"
 )
 
-// TODO: Doc
+// @Summary     取得 Account 設定
+// @Description 取得 Account 相關設定 (暱稱、地區、第三方登入綁定資訊)
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Param       accountUUID path     string true "Account UUID"
+// @Success     200         {object} controllers.JSONResponse{Data=getSettingResponsePayload}
+// @Failure     400         {object} controllers.JSONResponse
+// @Failure     500         {object} controllers.JSONResponse
+// @Router      /account/:accountUUID/setting [get]
 func GetSetting(c *gin.Context) {
 	accountSettingModel := models.AccountSetting{
 		AccountUUID: c.Param("accountUUID"),
@@ -75,7 +84,18 @@ func GetSetting(c *gin.Context) {
 	})
 }
 
-// TODO: Doc
+// @Summary     更新 Account 設定
+// @Description 更新 Account 相關設定 (暱稱、地區)
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       name   body     string false "暱稱"
+// @Param       locale body     string false "地區"
+// @Success     200    {object} controllers.JSONResponse{Data=patchSettingResponsePayload}
+// @Failure     400    {object} controllers.JSONResponse
+// @Failure     500    {object} controllers.JSONResponse
+// @Router      /account/:accountUUID/setting [patch]
 func PatchSetting(c *gin.Context) {
 	var requestPayload *patchSettingRequestPayload
 

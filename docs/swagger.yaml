@@ -1,5 +1,106 @@
 basePath: /api
 definitions:
+  account.getInfoResponsePayload:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      uuid:
+        type: string
+    type: object
+  account.getProfileResponsePayload:
+    properties:
+      avatar:
+        type: string
+      banner:
+        type: string
+      signature:
+        type: string
+      socialMedias:
+        items:
+          $ref: '#/definitions/account.socialMediaResponsePayload'
+        type: array
+    type: object
+  account.getSettingNotificationResponsePayload:
+    properties:
+      articleTweet:
+        type: boolean
+      chat:
+        type: boolean
+      commentTagged:
+        type: boolean
+      commentTweet:
+        type: boolean
+      followOrOwnArticleReply:
+        type: integer
+      followed:
+        type: boolean
+      interestRecommendation:
+        type: boolean
+    type: object
+  account.getSettingResponsePayload:
+    properties:
+      OAuthInfos:
+        items:
+          $ref: '#/definitions/account.oauthInfoResponsePayload'
+        type: array
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      locale:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  account.oauthInfoResponsePayload:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
+      id:
+        type: integer
+      provider:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  account.patchSettingResponsePayload:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      locale:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  account.socialMediaResponsePayload:
+    properties:
+      provider:
+        type: string
+      userName:
+        type: string
+    type: object
   auth.getAuthTokenByRefreshTokenResponsePayload:
     properties:
       authToken:
@@ -22,6 +123,27 @@ definitions:
       data: {}
       message: {}
     type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  image.uploadToS3ResponsePayload:
+    properties:
+      s3Url:
+        type: string
+      url:
+        type: string
+    type: object
+  textproto.MIMEHeader:
+    additionalProperties:
+      items:
+        type: string
+      type: array
+    type: object
 host: kaigon.sidesideeffect.io
 info:
   contact:
@@ -35,6 +157,331 @@ info:
   title: Kaigon API
   version: "1.0"
 paths:
+  /account/:accountUUID/info:
+    get:
+      consumes:
+      - application/json
+      description: 取得 Account 相關資訊 (UUID, Email)
+      parameters:
+      - description: Account UUID
+        in: path
+        name: accountUUID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResponse'
+            - properties:
+                Data:
+                  $ref: '#/definitions/account.getInfoResponsePayload'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 取得 Account 資訊
+      tags:
+      - accounts
+    patch:
+      consumes:
+      - application/json
+      description: 更新 Account 相關資訊 (UUID, Email)
+      parameters:
+      - description: Account Email
+        in: body
+        name: email
+        schema:
+          type: string
+      - description: Account Password
+        in: body
+        name: password
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 更新 Account 資訊
+      tags:
+      - accounts
+  /account/:accountUUID/profile:
+    get:
+      consumes:
+      - application/json
+      description: 取得 Account Profile (大頭貼、個人簽名檔、社群資訊、banner)
+      parameters:
+      - description: Account UUID
+        in: path
+        name: accountUUID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResponse'
+            - properties:
+                Data:
+                  $ref: '#/definitions/account.getProfileResponsePayload'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 取得 Account Profile
+      tags:
+      - accounts
+    patch:
+      consumes:
+      - application/json
+      description: 更新 Account Profile (大頭貼、個人簽名檔、社群資訊、banner)
+      parameters:
+      - description: 大頭貼
+        in: body
+        name: avatar
+        schema:
+          type: string
+      - description: banner
+        in: body
+        name: banner
+        schema:
+          type: string
+      - description: 個人簽名檔
+        in: body
+        name: signature
+        schema:
+          type: string
+      - description: 社群資訊
+        in: body
+        name: socailMedias
+        schema:
+          items:
+            $ref: '#/definitions/account.socialMediaResponsePayload'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 更新 Account Profile
+      tags:
+      - accounts
+  /account/:accountUUID/setting:
+    get:
+      consumes:
+      - application/json
+      description: 取得 Account 相關設定 (暱稱、地區、第三方登入綁定資訊)
+      parameters:
+      - description: Account UUID
+        in: path
+        name: accountUUID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResponse'
+            - properties:
+                Data:
+                  $ref: '#/definitions/account.getSettingResponsePayload'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 取得 Account 設定
+      tags:
+      - accounts
+    patch:
+      consumes:
+      - application/json
+      description: 更新 Account 相關設定 (暱稱、地區)
+      parameters:
+      - description: 暱稱
+        in: body
+        name: name
+        schema:
+          type: string
+      - description: 地區
+        in: body
+        name: locale
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResponse'
+            - properties:
+                Data:
+                  $ref: '#/definitions/account.patchSettingResponsePayload'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 更新 Account 設定
+      tags:
+      - accounts
+  /account/:accountUUID/setting/notification:
+    get:
+      consumes:
+      - application/json
+      description: 取得 Account 相關通知設定
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResponse'
+            - properties:
+                Data:
+                  $ref: '#/definitions/account.getSettingNotificationResponsePayload'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 取得 Account 通知設定
+      tags:
+      - accounts
+    put:
+      consumes:
+      - application/json
+      description: 更新 Account 相關通知設定
+      parameters:
+      - description: '我追蹤的/我的文章有新留言 (0: 關閉, 1: 所有留言, 2: 標註我的留言)'
+        in: body
+        name: followOrOwnArticleReply
+        required: true
+        schema:
+          type: integer
+      - description: 我的留言被標注
+        in: body
+        name: commentTagged
+        required: true
+        schema:
+          type: boolean
+      - description: 我的文章獲得心情
+        in: body
+        name: articleTweet
+        required: true
+        schema:
+          type: boolean
+      - description: 我的留言獲得愛心
+        in: body
+        name: commentTweet
+        required: true
+        schema:
+          type: boolean
+      - description: 我可能感興趣的內容
+        in: body
+        name: interestRecommendation
+        required: true
+        schema:
+          type: boolean
+      - description: 聊天通知
+        in: body
+        name: chat
+        required: true
+        schema:
+          type: boolean
+      - description: 被人追蹤時
+        in: body
+        name: followed
+        required: true
+        schema:
+          type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 更新 Account 通知設定
+      tags:
+      - accounts
   /account/{accountUUID}/info/verification:
     post:
       consumes:
@@ -396,6 +843,70 @@ paths:
       summary: 刷新圖形驗證
       tags:
       - auth
+  /auth/o/google/bind:
+    get:
+      consumes:
+      - application/json
+      description: 拿到 Google 給的 grant code 後導轉去指定前端頁面路徑 (導轉路徑為 "[GET]取得 Google OAuth
+        相關 URL" 當初打 API 時給什麼路徑就轉去那)
+      parameters:
+      - description: Google grant code (from google)
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: Front end redirect path (from google OAuth state QS)
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: Google OAuth 登入且授權成功後所導轉的 URI (綁定用)
+      tags:
+      - auth
+    patch:
+      consumes:
+      - application/json
+      description: 更新 Account 第三方登入綁定資訊
+      parameters:
+      - description: Google grant code (from google)
+        in: body
+        name: grantCode
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 更新 Account 第三方登入綁定資訊
+      tags:
+      - auth
   /auth/o/google/login:
     get:
       consumes:
@@ -426,7 +937,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/controllers.JSONResponse'
-      summary: Google OAuth 登入且授權成功後所導轉的 URI
+      summary: Google OAuth 登入且授權成功後所導轉的 URI (登入用)
       tags:
       - auth
   /auth/o/google/url:
@@ -512,6 +1023,48 @@ paths:
       summary: 取得 authToken
       tags:
       - auth
+  /image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上傳圖片到 S3
+      parameters:
+      - in: formData
+        name: filename
+        type: string
+      - in: formData
+        name: size
+        type: integer
+      - description: S3 Bucket 路徑目前只接收 (account, article, chat)，屆時請依照不同類型的性質來區分路徑
+        in: formData
+        name: folder
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResponse'
+            - properties:
+                Data:
+                  $ref: '#/definitions/image.uploadToS3ResponsePayload'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 上傳圖片到 S3
+      tags:
+      - image
 securityDefinitions:
   BearerAuth:
     in: header

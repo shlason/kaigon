@@ -47,8 +47,8 @@ type googleOAuthRedirectURIForLoginQueryParmas struct {
 }
 
 type googleOAuthRedirectURIForBindQueryParams struct {
-	Code         string `form:"code"`
-	RedirectPath string `form:"redirectPath"`
+	Code  string `form:"code"`
+	State string `form:"state"`
 }
 
 type googleOAuthBindRequestPayload struct {
