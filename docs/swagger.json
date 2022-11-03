@@ -1098,6 +1098,103 @@
                 }
             }
         },
+        "/auth/o/google/bind": {
+            "get": {
+                "description": "拿到 Google 給的 grant code 後導轉去指定前端頁面路徑 (導轉路徑為 \"[GET]取得 Google OAuth 相關 URL\" 當初打 API 時給什麼路徑就轉去那)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Google OAuth 登入且授權成功後所導轉的 URI (綁定用)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Google grant code (from google)",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Front end redirect path (from google OAuth state QS)",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Found"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "更新 Account 第三方登入綁定資訊",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "更新 Account 第三方登入綁定資訊",
+                "parameters": [
+                    {
+                        "description": "Google grant code (from google)",
+                        "name": "grantCode",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/o/google/login": {
             "get": {
                 "description": "拿到 Google 給的 grant code 後再去和 Google 拿 access token，再用 access token 去拿該 user 的相關資訊 (scope)，若失敗會在 QS 加上 oauth_login_failed=1",
@@ -1110,7 +1207,7 @@
                 "tags": [
                     "auth"
                 ],
-                "summary": "Google OAuth 登入且授權成功後所導轉的 URI",
+                "summary": "Google OAuth 登入且授權成功後所導轉的 URI (登入用)",
                 "parameters": [
                     {
                         "type": "string",
@@ -1266,6 +1363,77 @@
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/image": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "上傳圖片到 S3",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "image"
+                ],
+                "summary": "上傳圖片到 S3",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "filename",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "size",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "S3 Bucket 路徑目前只接收 (account, article, chat)，屆時請依照不同類型的性質來區分路徑",
+                        "name": "folder",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JSONResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "Data": {
+                                            "$ref": "#/definitions/image.uploadToS3ResponsePayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/controllers.JSONResponse"
                         }
@@ -1479,6 +1647,26 @@
                 "valid": {
                     "description": "Valid is true if Time is not NULL",
                     "type": "boolean"
+                }
+            }
+        },
+        "image.uploadToS3ResponsePayload": {
+            "type": "object",
+            "properties": {
+                "s3Url": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "textproto.MIMEHeader": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "string"
                 }
             }
         }

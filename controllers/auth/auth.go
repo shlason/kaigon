@@ -180,7 +180,7 @@ func getGoogleOAuthInfoByGrantCodeAndURLType(c *gin.Context, grantCode string, U
 }
 
 // TODO: 登入、註冊有很多重複的 CODE 需要整理
-// @Summary     Google OAuth 登入且授權成功後所導轉的 URI
+// @Summary     Google OAuth 登入且授權成功後所導轉的 URI (登入用)
 // @Description 拿到 Google 給的 grant code 後再去和 Google 拿 access token，再用 access token 去拿該 user 的相關資訊 (scope)，若失敗會在 QS 加上 oauth_login_failed=1
 // @Tags        auth
 // @Accept      json
@@ -363,7 +363,16 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 	))
 }
 
-// TODO: Doc
+// @Summary     Google OAuth 登入且授權成功後所導轉的 URI (綁定用)
+// @Description 拿到 Google 給的 grant code 後導轉去指定前端頁面路徑 (導轉路徑為 "[GET]取得 Google OAuth 相關 URL" 當初打 API 時給什麼路徑就轉去那)
+// @Tags        auth
+// @Accept      json
+// @Produce     json
+// @Param       code  query string true "Google grant code (from google)"
+// @Param       state query string true "Front end redirect path (from google OAuth state QS)"
+// @Success     302
+// @Failure     400 {object} controllers.JSONResponse
+// @Router      /auth/o/google/bind [get]
 func GoogleOAuthRedirectURIForBind(c *gin.Context) {
 	var requestParams *googleOAuthRedirectURIForBindQueryParams
 
@@ -382,12 +391,23 @@ func GoogleOAuthRedirectURIForBind(c *gin.Context) {
 		"%s://%s%s?grantCode=%s",
 		configs.Server.Protocol,
 		configs.Server.Host,
-		requestParams.RedirectPath,
+		requestParams.State,
 		requestParams.Code,
 	))
 }
 
-// TODO: Doc
+// @Summary     更新 Account 第三方登入綁定資訊
+// @Description 更新 Account 第三方登入綁定資訊
+// @Tags        auth
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       grantCode body     string true "Google grant code (from google)"
+// @Success     200       {object} controllers.JSONResponse
+// @Failure     400       {object} controllers.JSONResponse
+// @Failure     409       {object} controllers.JSONResponse
+// @Failure     500       {object} controllers.JSONResponse
+// @Router      /auth/o/google/bind [patch]
 func GoogleOAuthBind(c *gin.Context) {
 	var requestPayload *googleOAuthBindRequestPayload
 
