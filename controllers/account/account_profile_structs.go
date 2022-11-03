@@ -18,11 +18,13 @@ type getProfileResponsePayload struct {
 	SocialMedias []socialMediaResponsePayload `json:"socialMedias"`
 }
 
+type socialMediasResponsePayload *[]socialMediaResponsePayload
+
 type patchProfileRequestPayload struct {
-	Avatar       *string                       `json:"avatar"`
-	Banner       *string                       `json:"banner"`
-	Signature    *string                       `json:"signature"`
-	SocialMedias *[]socialMediaResponsePayload `json:"socialMedias"`
+	Avatar       *string                     `json:"avatar"`
+	Banner       *string                     `json:"banner"`
+	Signature    *string                     `json:"signature"`
+	SocialMedias socialMediasResponsePayload `json:"socialMedias"`
 }
 
 func (p *patchProfileRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {

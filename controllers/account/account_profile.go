@@ -10,7 +10,16 @@ import (
 	"gorm.io/gorm"
 )
 
-// TODO: Doc
+// @Summary     取得 Account Profile
+// @Description 取得 Account Profile (大頭貼、個人簽名檔、社群資訊、banner)
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Param       accountUUID path     string true "Account UUID"
+// @Success     200         {object} controllers.JSONResponse{Data=getProfileResponsePayload}
+// @Failure     400         {object} controllers.JSONResponse
+// @Failure     500         {object} controllers.JSONResponse
+// @Router      /account/:accountUUID/profile [get]
 func GetProfile(c *gin.Context) {
 	accountProfileModel := &models.AccountProfile{
 		AccountUUID: c.Param("accountUUID"),
@@ -66,7 +75,20 @@ func GetProfile(c *gin.Context) {
 	})
 }
 
-// TODO: Doc
+// @Summary     更新 Account Profile
+// @Description 更新 Account Profile (大頭貼、個人簽名檔、社群資訊、banner)
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       avatar       body     string                      false "大頭貼"
+// @Param       banner       body     string                      false "banner"
+// @Param       signature    body     string                      false "個人簽名檔"
+// @Param       socailMedias body     socialMediasResponsePayload false "社群資訊"
+// @Success     200          {object} controllers.JSONResponse
+// @Failure     400          {object} controllers.JSONResponse
+// @Failure     500          {object} controllers.JSONResponse
+// @Router      /account/:accountUUID/profile [patch]
 func PatchProfile(c *gin.Context) {
 	var requestPayload *patchProfileRequestPayload
 	errResp, err := controllers.BindJSON(c, &requestPayload)
