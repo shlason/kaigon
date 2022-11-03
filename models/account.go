@@ -49,5 +49,5 @@ func (account *Account) UpdateIsEmailVerifiedToTrueByAccountUUID() *gorm.DB {
 }
 
 func (Account) DeleteByIDs(ids []interface{}) *gorm.DB {
-	return db.Delete(&Account{}, ids)
+	return db.Unscoped().Delete(&Account{}, ids)
 }

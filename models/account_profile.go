@@ -34,5 +34,5 @@ func (AccountProfile) DeleteByAccountIDs(ids []interface{}) *gorm.DB {
 		fields = append(fields, "account_id = ?")
 	}
 
-	return db.Where(strings.Join(fields, " OR "), ids...).Delete(&AccountProfile{})
+	return db.Unscoped().Where(strings.Join(fields, " OR "), ids...).Delete(&AccountProfile{})
 }
