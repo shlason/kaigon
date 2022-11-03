@@ -9,6 +9,14 @@ import (
 )
 
 func RegisteDevelopUtilsRoutes(r *gin.RouterGroup) {
+	// @Summary     刪除所有開發者的所有帳號資料
+	// @Description 刪除所有開發者的所有帳號資料 (直接在網頁爆打這支就可以刪掉資料了)
+	// @Tags        useful_utils_when_developing
+	// @Accept      json
+	// @Produce     json
+	// @Success     200 {object} controllers.JSONResponse
+	// @Failure     500 {object} controllers.JSONResponse
+	// @Router      /develop/utils/account/delete [get]
 	r.GET("/develop/utils/account/delete", func(c *gin.Context) {
 		var hardcodeEmails = []interface{}{
 			"nocvi111@gmail.com",
