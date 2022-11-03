@@ -11,6 +11,7 @@ import (
 func RegisteDevelopUtilsRoutes(r *gin.RouterGroup) {
 	r.GET("/develop/utils/account/delete", func(c *gin.Context) {
 		var hardcodeEmails = []interface{}{
+			"nocvi111@gmail.com",
 			"hn15637648@yahoo.com.tw",
 			"hn15637648@gmail.com",
 			"a7636439@gmail.com",
@@ -102,5 +103,10 @@ func RegisteDevelopUtilsRoutes(r *gin.RouterGroup) {
 			return
 		}
 
+		c.JSON(http.StatusOK, controllers.JSONResponse{
+			Code:    controllers.SuccessCode,
+			Message: controllers.SuccessMessage,
+			Data:    nil,
+		})
 	})
 }
