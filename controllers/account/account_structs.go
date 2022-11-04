@@ -176,7 +176,7 @@ type verificationSessionTemplateParams struct {
 	Link string `json:"link"`
 }
 
-func (p *verificationSessionTemplateParams) generate(accountUUID string) error {
+func (p *verificationSessionTemplateParams) generate(accountUUID string, redirectPath string) error {
 	authAccountEmailVerificationModel := &models.AuthAccountEmailVerification{
 		AccountUUID: accountUUID,
 	}
@@ -185,20 +185,22 @@ func (p *verificationSessionTemplateParams) generate(accountUUID string) error {
 		return err
 	}
 	p.Link = fmt.Sprintf(
-		"%s://%s/account/%s/info/verification/email?token=%s&code=%s",
+		"%s://%s/account/%s/info/verification/email?token=%s&code=%s&redirectPath=%s",
 		configs.Server.Protocol,
 		configs.Server.Host,
 		accountUUID,
 		authAccountEmailVerificationModel.Token,
 		authAccountEmailVerificationModel.Code,
+		redirectPath,
 	)
 
 	return nil
 }
 
 type createVerifySessionRequestPayload struct {
-	Email string `json:"email"`
-	Type  string `json:"type"`
+	Email        string `json:"email"`
+	Type         string `json:"type"`
+	RedirectPath string `json:"redirectPath"`
 }
 
 func (p *createVerifySessionRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
