@@ -42,6 +42,7 @@ func clientManager() {
 			case acceptRequestCmds["get_all_chat_room"]:
 				getAllChatRoomHandler(msg)
 			case acceptRequestCmds["get_chat_message"]:
+				getChatMessage(msg)
 			case acceptRequestCmds["send_chat_message"]:
 				sendChatMessageHandler(clients, msg)
 			case acceptRequestCmds["get_chat_room_setting"]:
