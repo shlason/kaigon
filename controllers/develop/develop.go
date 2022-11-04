@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
+	"gorm.io/gorm"
 )
 
 // @Summary     刪除所有開發者的所有帳號資料
@@ -28,6 +29,15 @@ func DeleteAccount(c *gin.Context) {
 	var accountModels []models.Account
 
 	result := models.Account{}.ReadByEmails(hardcodeEmails, &accountModels)
+
+	if result.Error == gorm.ErrRecordNotFound {
+		c.JSON(http.StatusOK, controllers.JSONResponse{
+			Code:    controllers.SuccessCode,
+			Message: controllers.SuccessMessage,
+			Data:    nil,
+		})
+		return
+	}
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
