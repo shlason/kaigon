@@ -31,7 +31,7 @@ type sendChatMessageRequestPayload struct {
 	Content string `json:"content"`
 }
 
-func (c sendChatMessageRequestPayload) Parse(data interface{}) (sendChatMessageRequestPayload, error) {
+func (c sendChatMessageRequestPayload) parse(data interface{}) (sendChatMessageRequestPayload, error) {
 	p := sendChatMessageRequestPayload{}
 
 	bytes, err := json.Marshal(data)
@@ -45,6 +45,14 @@ func (c sendChatMessageRequestPayload) Parse(data interface{}) (sendChatMessageR
 	return p, err
 }
 
+func (c sendChatMessageRequestPayload) check() (isNotValid bool) {
+	if _, ok := acceptCheatMessageTypes[c.Type]; !ok {
+		return true
+	}
+
+	return false
+}
+
 func sendChatMessageHandler(clients map[string]client, msg message) {
 	*msg.Self.Channel <- message{
 		Seq:           msg.Seq,
@@ -54,11 +62,26 @@ func sendChatMessageHandler(clients map[string]client, msg message) {
 		Payload:       nil,
 	}
 
-	sendChatMsgReqPayload, err := sendChatMessageRequestPayload{}.Parse(msg.Payload)
+	sendChatMsgReqPayload, err := sendChatMessageRequestPayload{}.parse(msg.Payload)
 
 	if err != nil {
 		fmt.Println("chatMsgPayload.Parse got error")
 		fmt.Println(err)
+		return
+	}
+
+	isNotValid := sendChatMsgReqPayload.check()
+
+	if isNotValid {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    errCodeRequestFieldNotValid,
+			StatusCode:    http.StatusBadRequest,
+			StatusMessage: errMessageRequestFieldNotValid,
+			Payload:       nil,
+		}
+		return
 	}
 
 	chatMsgModel := &models.ChatMessage{
@@ -73,6 +96,7 @@ func sendChatMessageHandler(clients map[string]client, msg message) {
 
 	if err != nil {
 		fmt.Println("insert one got error: ", err)
+		return
 	}
 
 	var chatRoomMembers []models.ChatRoomMember
@@ -90,7 +114,7 @@ func sendChatMessageHandler(clients map[string]client, msg message) {
 		// TODO: 接收方不在線上時的處理
 		if !ok {
 			fmt.Printf("Friend: %s offline\n", chatRoomMember.AccountUUID)
-			return
+			continue
 		}
 		fmt.Printf("message sending from: %s, to: %d\n", sendChatMsgReqPayload.From, sendChatMsgReqPayload.To)
 		toCli <- message{
