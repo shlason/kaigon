@@ -890,8 +890,17 @@ const docTemplate = `{
                         }
                     },
                     {
-                        "description": "Verification type",
+                        "description": "Verification type (Email)",
                         "name": "type",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "驗證連結點擊後導轉終點",
+                        "name": "redirectPath",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -965,6 +974,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Verify Code",
                         "name": "code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "驗證成功後的導轉路徑",
+                        "name": "redirectPath",
                         "in": "query",
                         "required": true
                     }

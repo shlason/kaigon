@@ -208,14 +208,15 @@ func SignIn(c *gin.Context) {
 // @Accept      json
 // @Produce     json
 // @Security    ApiKeyAuth
-// @Param       accountUUID path     string true "Account UUID"
-// @Param       email       body     string true "Account Email"
-// @Param       type        body     string true "Verification type"
-// @Success     200         {object} controllers.JSONResponse
-// @Failure     400         {object} controllers.JSONResponse
-// @Failure     401         {object} controllers.JSONResponse
-// @Failure     403         {object} controllers.JSONResponse
-// @Failure     500         {object} controllers.JSONResponse
+// @Param       accountUUID  path     string true "Account UUID"
+// @Param       email        body     string true "Account Email"
+// @Param       type         body     string true "Verification type (Email)"
+// @Param       redirectPath body     string true "驗證連結點擊後導轉終點"
+// @Success     200          {object} controllers.JSONResponse
+// @Failure     400          {object} controllers.JSONResponse
+// @Failure     401          {object} controllers.JSONResponse
+// @Failure     403          {object} controllers.JSONResponse
+// @Failure     500          {object} controllers.JSONResponse
 // @Router      /account/{accountUUID}/info/verification [post]
 func CreateVerifySession(c *gin.Context) {
 	var requestPayload *createVerifySessionRequestPayload
@@ -241,7 +242,7 @@ func CreateVerifySession(c *gin.Context) {
 	}
 
 	templatParams := &verificationSessionTemplateParams{}
-	err = templatParams.generate(authPayload.AccountUUID)
+	err = templatParams.generate(authPayload.AccountUUID, requestPayload.RedirectPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
 			Code:    controllers.ErrCodeServerRedisSetNXKeyGotError,
@@ -277,9 +278,10 @@ func CreateVerifySession(c *gin.Context) {
 // @Tags        accounts
 // @Accept      json
 // @Produce     json
-// @Param       accountUUID path  string true "Account UUID"
-// @Param       token       query string true "Session Token"
-// @Param       code        query string true "Verify Code"
+// @Param       accountUUID  path  string true "Account UUID"
+// @Param       token        query string true "Session Token"
+// @Param       code         query string true "Verify Code"
+// @Param       redirectPath query string true "驗證成功後的導轉路徑"
 // @Success     302
 // @Failure     400 {object} controllers.JSONResponse
 // @Failure     500 {object} controllers.JSONResponse
@@ -318,7 +320,7 @@ func VerifyWithEmail(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusFound, fmt.Sprintf("%s://%s", configs.Server.Protocol, configs.Server.Host))
+	c.Redirect(http.StatusFound, fmt.Sprintf("%s://%s%s", configs.Server.Protocol, configs.Server.Host, c.Query("redirectPath")))
 }
 
 // @Summary     啟動重設密碼階段 (忘記密碼時)

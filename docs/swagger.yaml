@@ -499,9 +499,15 @@ paths:
         required: true
         schema:
           type: string
-      - description: Verification type
+      - description: Verification type (Email)
         in: body
         name: type
+        required: true
+        schema:
+          type: string
+      - description: 驗證連結點擊後導轉終點
+        in: body
+        name: redirectPath
         required: true
         schema:
           type: string
@@ -552,6 +558,11 @@ paths:
       - description: Verify Code
         in: query
         name: code
+        required: true
+        type: string
+      - description: 驗證成功後的導轉路徑
+        in: query
+        name: redirectPath
         required: true
         type: string
       produces:
