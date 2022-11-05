@@ -541,8 +541,9 @@ func GetInfo(c *gin.Context) {
 				UpdatedAt: accountModel.UpdatedAt,
 				DeletedAt: accountModel.DeletedAt,
 			},
-			UUID:  accountModel.UUID,
-			Email: accountModel.Email,
+			UUID:            accountModel.UUID,
+			Email:           accountModel.Email,
+			IsEmailVerified: accountModel.IsEmailVerified,
 		},
 	})
 }

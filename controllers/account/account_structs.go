@@ -235,8 +235,9 @@ type verifyWithEmailRequestPayload struct {
 
 type getInfoResponsePayload struct {
 	controllers.GormModelResponse
-	UUID  string `json:"uuid"`
-	Email string `json:"email"`
+	UUID            string `json:"uuid"`
+	Email           string `json:"email"`
+	IsEmailVerified bool   `json:"isEmailVerified"`
 }
 
 type patchInfoRequestPayload struct {

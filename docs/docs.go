@@ -1516,6 +1516,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "isEmailVerified": {
+                    "type": "boolean"
+                },
                 "updatedAt": {
                     "type": "string"
                 },
