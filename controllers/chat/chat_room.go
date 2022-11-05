@@ -161,7 +161,7 @@ func updateChatRoomSettingHandler(clients map[string]client, msg message) {
 			CustomCode:    controllers.ErrCodeRequestPayloadFieldNotValid,
 			StatusCode:    http.StatusBadRequest,
 			StatusMessage: controllers.ErrMessageRequestPayloadFieldNotValid,
-			Payload:       getAllChatRoomResponse{},
+			Payload:       nil,
 		}
 		return
 	}
@@ -224,5 +224,70 @@ func updateChatRoomSettingHandler(clients map[string]client, msg message) {
 				Avatar:     chatRoomModel.Avatar,
 			},
 		}
+	}
+}
+
+type updateChatRoomCustomSettingRequestPayload struct {
+	ChatRoomID          uint   `json:"chatRoomId"`
+	Theme               string `json:"theme"`
+	EnabledNotification string `json:"enabledNotification"`
+}
+
+func (updateChatRoomCustomSettingRequestPayload) parse(data interface{}) (updateChatRoomCustomSettingRequestPayload, error) {
+	p := updateChatRoomCustomSettingRequestPayload{}
+
+	bytes, err := json.Marshal(data)
+
+	if err != nil {
+		return p, err
+	}
+
+	err = json.Unmarshal(bytes, &p)
+
+	return p, err
+}
+
+func updateChatRoomCustomSettingHandler(msg message) {
+	requestPayload, err := updateChatRoomCustomSettingRequestPayload{}.parse(msg.Payload)
+
+	if err != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeRequestPayloadFieldNotValid,
+			StatusCode:    http.StatusBadRequest,
+			StatusMessage: controllers.ErrMessageRequestPayloadFieldNotValid,
+			Payload:       nil,
+		}
+		return
+	}
+
+	m := controllers.GetFilteredNilRequestPayloadMap(&requestPayload)
+
+	chatRoomMemberModel := models.ChatRoomMember{
+		ChatRoomID:  requestPayload.ChatRoomID,
+		AccountUUID: msg.Self.AccountUUID,
+	}
+
+	result := chatRoomMemberModel.UpdateByChatRoomIDAndAccountUUID(m)
+
+	if result.Error != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeServerDatabaseUpdateGotError,
+			StatusCode:    http.StatusInternalServerError,
+			StatusMessage: result.Error,
+			Payload:       nil,
+		}
+		return
+	}
+
+	*msg.Self.Channel <- message{
+		Seq:           msg.Seq,
+		Cmd:           msg.Cmd,
+		StatusCode:    http.StatusOK,
+		StatusMessage: controllers.SuccessMessage,
+		Payload:       nil,
 	}
 }

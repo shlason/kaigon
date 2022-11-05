@@ -37,3 +37,7 @@ func (acr ChatRoomMember) ReadAllByChatRoomIDs(ids []interface{}, list *[]ChatRo
 
 	return db.Where(strings.Join(fields, " OR "), ids...).Find(&list)
 }
+
+func (acr *ChatRoomMember) UpdateByChatRoomIDAndAccountUUID(m map[string]interface{}) *gorm.DB {
+	return db.Model(&acr).Where("chat_room_id = ? AND account_uuid = ?", acr.ChatRoomID, acr.AccountUUID).Updates(m)
+}

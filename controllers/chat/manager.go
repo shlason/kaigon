@@ -30,6 +30,7 @@ func clientManager() {
 		select {
 		case msg := <-messages:
 			// TODO: 回傳的 status message, code 需要討論和統整
+			// TODO: message 的 interface{} type payload 每次 parse 成相對應的 struct type 都需要重複寫 parse method 因此要想辦法抽出來複用
 			errResp, isNotValid := msg.Check()
 
 			if isNotValid {
@@ -48,7 +49,8 @@ func clientManager() {
 				sendChatMessageHandler(clients, msg)
 			case acceptRequestCmds["update_chat_room_setting"]:
 				updateChatRoomSettingHandler(clients, msg)
-			case acceptRequestCmds["update_chat_room_account_setting"]:
+			case acceptRequestCmds["update_chat_room_custom_setting"]:
+				updateChatRoomCustomSettingHandler(msg)
 			}
 
 		case connInfo := <-clientConnect:
