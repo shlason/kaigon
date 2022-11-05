@@ -22,6 +22,16 @@ func (accountSetting *AccountSetting) ReadByAccountUUID() *gorm.DB {
 	return db.First(&accountSetting, "account_uuid = ?", accountSetting.AccountUUID)
 }
 
+func (AccountSetting) ReadAllByAccountUUIDs(accountUuids []interface{}, list *[]AccountSetting) *gorm.DB {
+	var fields []string
+
+	for i := 0; i < len(accountUuids); i++ {
+		fields = append(fields, "account_uuid = ?")
+	}
+
+	return db.Where(strings.Join(fields, " OR "), accountUuids...).Find(&list)
+}
+
 func (accountSetting *AccountSetting) UpdateByAccountUUID(m map[string]interface{}) *gorm.DB {
 	return db.Model(&accountSetting).Where("account_uuid = ?", accountSetting.AccountUUID).Updates(m)
 }

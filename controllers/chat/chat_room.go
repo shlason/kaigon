@@ -13,6 +13,8 @@ import (
 
 type chatRoomMemberResponse struct {
 	AccountUUID         string
+	Name                string
+	Avatar              string
 	Theme               string
 	EnabledNotification bool
 	LastSeenAt          time.Time
@@ -76,7 +78,11 @@ func getAllChatRoomHandler(msg message) {
 		return
 	}
 
+	// TODO: 聊天室成員的相關資訊 query 方式太耗資源，要優化或改變 DB schema 或想辦法用 cache
 	var chatRoomMembers []models.ChatRoomMember
+	var chatRoomMemberAccountUUIDs []interface{}
+	var chatRoomMemberAccountSettings []models.AccountSetting
+	var chatRoomMemberAccountProfiles []models.AccountProfile
 
 	result = models.ChatRoomMember{}.ReadAllByChatRoomIDs(availableChatRoomIds, &chatRoomMembers)
 
@@ -86,13 +92,57 @@ func getAllChatRoomHandler(msg message) {
 		return
 	}
 
+	for _, chatRoomMember := range chatRoomMembers {
+		chatRoomMemberAccountUUIDs = append(chatRoomMemberAccountUUIDs, chatRoomMember.AccountUUID)
+	}
+
+	result = models.AccountSetting{}.ReadAllByAccountUUIDs(chatRoomMemberAccountUUIDs, &chatRoomMemberAccountSettings)
+
+	// TODO: 發生意外錯誤時
+	if result.Error != nil {
+		fmt.Println(result.Error)
+		return
+	}
+
+	result = models.AccountProfile{}.ReadAllByAccountUUIDs(chatRoomMemberAccountUUIDs, &chatRoomMemberAccountProfiles)
+
+	// TODO: 發生意外錯誤時
+	if result.Error != nil {
+		fmt.Println(result.Error)
+		return
+	}
+
+	// TODO: 寫法需要優化
+	var chatRoomMemberAccountSettingsMapping = make(map[string]models.AccountSetting)
+	var chatRoomMemberAccountProfilesMapping = make(map[string]models.AccountProfile)
 	var chatRoomMembersMapping = make(map[uint][]chatRoomMemberResponse)
+
+	for _, chatRoomMemberAccountSetting := range chatRoomMemberAccountSettings {
+		chatRoomMemberAccountSettingsMapping[chatRoomMemberAccountSetting.AccountUUID] = models.AccountSetting{
+			AccountID:   chatRoomMemberAccountSetting.AccountID,
+			AccountUUID: chatRoomMemberAccountSetting.AccountUUID,
+			Name:        chatRoomMemberAccountSetting.Name,
+			Locale:      chatRoomMemberAccountSetting.Locale,
+		}
+	}
+
+	for _, chatRoomMemberAccountProfile := range chatRoomMemberAccountProfiles {
+		chatRoomMemberAccountProfilesMapping[chatRoomMemberAccountProfile.AccountUUID] = models.AccountProfile{
+			AccountID:   chatRoomMemberAccountProfile.AccountID,
+			AccountUUID: chatRoomMemberAccountProfile.AccountUUID,
+			Avatar:      chatRoomMemberAccountProfile.Avatar,
+			Banner:      chatRoomMemberAccountProfile.Banner,
+			Signature:   chatRoomMemberAccountProfile.Signature,
+		}
+	}
 
 	for _, chatRoomMember := range chatRoomMembers {
 		chatRoomMembersMapping[chatRoomMember.ChatRoomID] = append(
 			chatRoomMembersMapping[chatRoomMember.ChatRoomID],
 			chatRoomMemberResponse{
 				AccountUUID:         chatRoomMember.AccountUUID,
+				Name:                chatRoomMemberAccountSettingsMapping[chatRoomMember.AccountUUID].Name,
+				Avatar:              chatRoomMemberAccountProfilesMapping[chatRoomMember.AccountUUID].Avatar,
 				Theme:               chatRoomMember.Theme,
 				EnabledNotification: chatRoomMember.EnabledNotification,
 				LastSeenAt:          chatRoomMember.LastSeenAt,
