@@ -9,6 +9,7 @@ var acceptRequestCmds = map[string]string{
 	"send_chat_message":               "send_chat_message",
 	"update_chat_room_setting":        "update_chat_room_setting",
 	"update_chat_room_custom_setting": "update_chat_room_custom_setting",
+	"have_read":                       "have_read",
 }
 
 var acceptResponseCmds = map[string]string{
@@ -19,6 +20,7 @@ var acceptResponseCmds = map[string]string{
 	"update_chat_room_setting":        "update_chat_room_setting",
 	"update_chat_room_custom_setting": "update_chat_room_custom_setting",
 	"received":                        "received",
+	"have_read":                       "have_read",
 }
 
 type selfInfo struct {

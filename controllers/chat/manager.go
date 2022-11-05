@@ -51,6 +51,8 @@ func clientManager() {
 				updateChatRoomSettingHandler(clients, msg)
 			case acceptRequestCmds["update_chat_room_custom_setting"]:
 				updateChatRoomCustomSettingHandler(msg)
+			case acceptRequestCmds["have_read"]:
+				updateChatRoomLastSeenHandler(clients, msg)
 			}
 
 		case connInfo := <-clientConnect:
