@@ -7,7 +7,6 @@ var acceptRequestCmds = map[string]string{
 	"get_all_chat_room":                "get_all_chat_room",
 	"get_chat_message":                 "get_chat_message",
 	"send_chat_message":                "send_chat_message",
-	"get_chat_room_setting":            "get_chat_room_setting",
 	"update_chat_room_setting":         "update_chat_room_setting",
 	"update_chat_room_account_setting": "update_chat_room_account_setting",
 }
@@ -17,7 +16,6 @@ var acceptResponseCmds = map[string]string{
 	"get_all_chat_room":                "get_all_chat_room",
 	"get_chat_message":                 "get_chat_message",
 	"send_chat_message":                "send_chat_message",
-	"get_chat_room_setting":            "get_chat_room_setting",
 	"update_chat_room_setting":         "update_chat_room_setting",
 	"update_chat_room_account_setting": "update_chat_room_account_setting",
 	"received":                         "received",

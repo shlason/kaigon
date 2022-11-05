@@ -25,6 +25,7 @@ func clientManager() {
 	// map[AccountUUID]client
 	clients := make(map[string]client)
 
+	// TODO: 增加針對聊天室全體成員的廣播
 	for {
 		select {
 		case msg := <-messages:
@@ -45,8 +46,8 @@ func clientManager() {
 				getChatMessage(msg)
 			case acceptRequestCmds["send_chat_message"]:
 				sendChatMessageHandler(clients, msg)
-			case acceptRequestCmds["get_chat_room_setting"]:
 			case acceptRequestCmds["update_chat_room_setting"]:
+				updateChatRoomSettingHandler(clients, msg)
 			case acceptRequestCmds["update_chat_room_account_setting"]:
 			}
 

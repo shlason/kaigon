@@ -19,15 +19,6 @@ func (cr *ChatRoom) Create() *gorm.DB {
 	return db.Create(&cr)
 }
 
-type ChatRoomInfo struct {
-	ID               uint
-	Type             string
-	MaximumMemberNum int
-	Emoji            string
-	Name             string
-	Avatar           string
-}
-
 func (ChatRoom) ReadAllByIDs(ids []interface{}, list *[]ChatRoom) *gorm.DB {
 	var fields []string
 
@@ -36,4 +27,8 @@ func (ChatRoom) ReadAllByIDs(ids []interface{}, list *[]ChatRoom) *gorm.DB {
 	}
 
 	return db.Where(strings.Join(fields, " OR "), ids...).Find(&list)
+}
+
+func (cr *ChatRoom) UpdateByID(m map[string]interface{}) *gorm.DB {
+	return db.Model(&cr).Where("id = ?", cr.ID).Updates(m)
 }

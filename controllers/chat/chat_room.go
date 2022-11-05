@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -119,5 +120,109 @@ func getAllChatRoomHandler(msg message) {
 		StatusCode:    http.StatusOK,
 		StatusMessage: controllers.SuccessMessage,
 		Payload:       response,
+	}
+}
+
+type updateChatRoomSettingRequestPayload struct {
+	ChatRoomID uint   `json:"chatRoomId"`
+	Emoji      string `json:"emoji"`
+	Name       string `json:"name"`
+	Avatar     string `json:"avatar"`
+}
+
+func (updateChatRoomSettingRequestPayload) parse(data interface{}) (updateChatRoomSettingRequestPayload, error) {
+	p := updateChatRoomSettingRequestPayload{}
+
+	bytes, err := json.Marshal(data)
+
+	if err != nil {
+		return p, err
+	}
+
+	err = json.Unmarshal(bytes, &p)
+
+	return p, err
+}
+
+type updateChatRoomSettingResponse struct {
+	ChatRoomID uint   `json:"chatRoomId"`
+	Emoji      string `json:"emoji"`
+	Name       string `json:"name"`
+	Avatar     string `json:"avatar"`
+}
+
+func updateChatRoomSettingHandler(clients map[string]client, msg message) {
+	requestPayload, err := updateChatRoomSettingRequestPayload{}.parse(msg.Payload)
+
+	if err != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeRequestPayloadFieldNotValid,
+			StatusCode:    http.StatusBadRequest,
+			StatusMessage: controllers.ErrMessageRequestPayloadFieldNotValid,
+			Payload:       getAllChatRoomResponse{},
+		}
+		return
+	}
+
+	m := controllers.GetFilteredNilRequestPayloadMap(&requestPayload)
+
+	chatRoomModel := models.ChatRoom{
+		Model: gorm.Model{
+			ID: requestPayload.ChatRoomID,
+		},
+	}
+
+	result := chatRoomModel.UpdateByID(m)
+
+	if result.Error != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeServerDatabaseUpdateGotError,
+			StatusCode:    http.StatusInternalServerError,
+			StatusMessage: result.Error,
+			Payload:       nil,
+		}
+		return
+	}
+
+	var chatRoomMembers []models.ChatRoomMember
+
+	result = models.ChatRoomMember{}.ReadAllByChatRoomID(requestPayload.ChatRoomID, &chatRoomMembers)
+
+	if result.Error != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeServerDatabaseQueryGotError,
+			StatusCode:    http.StatusInternalServerError,
+			StatusMessage: result.Error,
+			Payload:       nil,
+		}
+		return
+	}
+
+	for _, chatRoomMember := range chatRoomMembers {
+		toCli, ok := clients[chatRoomMember.AccountUUID]
+		// TODO: 接收方不在線上時的處理
+		if !ok {
+			fmt.Printf("Friend: %s offline\n", chatRoomMember.AccountUUID)
+			continue
+		}
+
+		toCli <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			StatusCode:    http.StatusOK,
+			StatusMessage: controllers.SuccessMessage,
+			Payload: updateChatRoomSettingResponse{
+				ChatRoomID: requestPayload.ChatRoomID,
+				Emoji:      chatRoomModel.Emoji,
+				Name:       chatRoomModel.Name,
+				Avatar:     chatRoomModel.Avatar,
+			},
+		}
 	}
 }

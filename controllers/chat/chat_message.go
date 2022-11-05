@@ -31,7 +31,7 @@ type sendChatMessageRequestPayload struct {
 	Content string `json:"content"`
 }
 
-func (c sendChatMessageRequestPayload) parse(data interface{}) (sendChatMessageRequestPayload, error) {
+func (sendChatMessageRequestPayload) parse(data interface{}) (sendChatMessageRequestPayload, error) {
 	p := sendChatMessageRequestPayload{}
 
 	bytes, err := json.Marshal(data)
@@ -156,14 +156,6 @@ func (c getChatMessageRequestPayload) Parse(data interface{}) (getChatMessageReq
 }
 
 func getChatMessage(msg message) {
-	*msg.Self.Channel <- message{
-		Seq:           msg.Seq,
-		Cmd:           acceptResponseCmds[acceptResponseCmds["received"]],
-		StatusCode:    http.StatusOK,
-		StatusMessage: controllers.SuccessMessage,
-		Payload:       nil,
-	}
-
 	getChatMsgReqPayload, err := getChatMessageRequestPayload{}.Parse(msg.Payload)
 
 	if err != nil {
