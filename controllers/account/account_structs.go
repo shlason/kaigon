@@ -241,8 +241,9 @@ type getInfoResponsePayload struct {
 }
 
 type patchInfoRequestPayload struct {
-	Email    *string `json:"eamil"`
-	Password *string `json:"password"`
+	Email            *string `json:"eamil"`
+	Password         *string `json:"password"`
+	OriginalPassword *string `json:"originalPassword"`
 }
 
 func (p *patchInfoRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
@@ -254,7 +255,7 @@ func (p *patchInfoRequestPayload) check() (errResponse controllers.JSONResponse,
 		}, true
 	}
 
-	if !isValidPassword(*p.Password) {
+	if p.Password != nil && !isValidPassword(*p.Password) {
 		return controllers.JSONResponse{
 			Code:    controllers.ErrCodeRequestPayloadFieldNotValid,
 			Message: controllers.ErrMessageRequestPayloadFieldNotValid,

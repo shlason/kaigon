@@ -7,6 +7,9 @@ const (
 	errCodeRequestPayloadPasswordFieldNotValid    = "err-400-rppfnv"
 	errMessageRequestPayloadPasswordFieldNotValid = "password field is not valid"
 
+	errCodeRequesyPayloadOriginalPasswordFieldMismatch    = "err-400-rpopfm"
+	errMessageRequesyPayloadOriginalPasswordFieldMismatch = "original password mismatch"
+
 	errCodeRequestPayloadEmailFieldDatabaseRecordNotFound    = "err-400-rpefdbrnf"
 	errMessageRequestPayloadEmailFieldDatabaseRecordNotFound = "email record not found"
 

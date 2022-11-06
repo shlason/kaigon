@@ -556,6 +556,7 @@ func GetInfo(c *gin.Context) {
 // @Security    ApiKeyAuth
 // @Param       email    body     string false "Account Email"
 // @Param       password body     string false "Account Password"
+// @Param       originalPassword body     string false "Account Original Passsword"
 // @Success     200      {object} controllers.JSONResponse
 // @Failure     400      {object} controllers.JSONResponse
 // @Failure     409      {object} controllers.JSONResponse
@@ -570,7 +571,43 @@ func PatchInfo(c *gin.Context) {
 		return
 	}
 
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+
+	accountModel := &models.Account{
+		UUID: authPayload.AccountUUID,
+	}
+
+	result := accountModel.ReadByUUID()
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
 	if requestPayload.Password != nil {
+		originalHashPwd, err := bcrypt.GenerateFromPassword([]byte(*requestPayload.OriginalPassword), 14)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+				Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+				Message: err,
+				Data:    nil,
+			})
+			return
+		}
+
+		if string(originalHashPwd) != accountModel.Password {
+			c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+				Code:    errCodeRequesyPayloadOriginalPasswordFieldMismatch,
+				Message: errMessageRequesyPayloadOriginalPasswordFieldMismatch,
+				Data:    nil,
+			})
+			return
+		}
+
 		hashPwd, err := bcrypt.GenerateFromPassword([]byte(*requestPayload.Password), 14)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
@@ -580,6 +617,7 @@ func PatchInfo(c *gin.Context) {
 			})
 			return
 		}
+
 		*requestPayload.Password = string(hashPwd)
 	}
 
@@ -609,14 +647,11 @@ func PatchInfo(c *gin.Context) {
 		}
 	}
 
+	// 無腦設定為 nil 藉此過濾掉該 field 不會進到更新 payload map 中 (經過 "GetFilteredNilRequestPayloadMap" func 過濾)
+	requestPayload.OriginalPassword = nil
 	m := controllers.GetFilteredNilRequestPayloadMap(requestPayload)
-	authPayload := c.MustGet("authPayload").(*models.JWTToken)
-	accountModel := &models.Account{
-		UUID:  authPayload.AccountUUID,
-		Email: authPayload.Email,
-	}
 
-	result := accountModel.UpdateByEmailAndUUID(m)
+	result = accountModel.UpdateByEmailAndUUID(m)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
