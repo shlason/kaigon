@@ -112,6 +112,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "description": "Account Original Passsword",
+                        "name": "originalPassword",
+                        "in": "body",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -1515,6 +1523,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "isEmailVerified": {
+                    "type": "boolean"
                 },
                 "updatedAt": {
                     "type": "string"

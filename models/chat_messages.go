@@ -25,8 +25,9 @@ func (m *ChatMessage) InsertOne() (*mongo.InsertOneResult, error) {
 	return mdb.ChatMessages.InsertOne(context.TODO(), m)
 }
 
-func (m ChatMessage) FindByID(objID primitive.ObjectID) ([]*ChatMessage, error) {
-	cursor, err := mdb.ChatMessages.Find(context.TODO(), bson.M{"_id": objID}, options.Find())
+func (ChatMessage) FindByTo(to uint) ([]*ChatMessage, error) {
+	cursor, err := mdb.ChatMessages.Find(context.TODO(), bson.M{"to": to}, options.Find())
+
 	if err != nil {
 		return []*ChatMessage{}, err
 	}

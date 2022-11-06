@@ -30,7 +30,8 @@
     <label for="message">Message:</label>
     <input type="text" id="message" name="message">
     <button id="send-message-btn">Submit</button>
-    <button id="get-caht-room-btn-ingo">Get Chat Room Info</button>
+    <button id="get-caht-room-btn-info">Get Chat Room Info</button>
+    <button id="get-caht-message-btn">Get Chat Room Message</button>
     <script>
         var ws
         function connect() {
@@ -71,7 +72,18 @@
 
         const connBtnEle = document.getElementById('connect-btn');
         const sendMsgBtnEle = document.getElementById('send-message-btn');
-        const getChatRoomInfoBtn = document.getElementById('get-caht-room-btn-ingo');
+        const getChatRoomInfoBtn = document.getElementById('get-caht-room-btn-info');
+        const getChatMessageBtn = document.getElementById('get-caht-message-btn');
+    
+        getChatMessageBtn.addEventListener("click", () => {
+            ws.send(JSON.stringify({
+                seq: Date.now(),
+                cmd: "get_chat_message",
+                payload: {
+                    chatRoomId: parseInt(document.getElementById('receiver').value)
+                }
+            }))
+        })
 
         getChatRoomInfoBtn.addEventListener("click", () => {
             ws.send(JSON.stringify({
@@ -91,7 +103,8 @@
                 cmd: "send_chat_message",
                 payload: {
                     from: document.getElementById('accountUUID').value,
-                    to: document.getElementById('receiver').value,
+                    to: parseInt(document.getElementById('receiver').value),
+                    type: "text",
                     content: message,
                 }
             }));

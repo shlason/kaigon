@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -12,6 +13,8 @@ import (
 
 type chatRoomMemberResponse struct {
 	AccountUUID         string
+	Name                string
+	Avatar              string
 	Theme               string
 	EnabledNotification bool
 	LastSeenAt          time.Time
@@ -75,7 +78,11 @@ func getAllChatRoomHandler(msg message) {
 		return
 	}
 
+	// TODO: 聊天室成員的相關資訊 query 方式太耗資源，要優化或改變 DB schema 或想辦法用 cache
 	var chatRoomMembers []models.ChatRoomMember
+	var chatRoomMemberAccountUUIDs []interface{}
+	var chatRoomMemberAccountSettings []models.AccountSetting
+	var chatRoomMemberAccountProfiles []models.AccountProfile
 
 	result = models.ChatRoomMember{}.ReadAllByChatRoomIDs(availableChatRoomIds, &chatRoomMembers)
 
@@ -85,13 +92,57 @@ func getAllChatRoomHandler(msg message) {
 		return
 	}
 
+	for _, chatRoomMember := range chatRoomMembers {
+		chatRoomMemberAccountUUIDs = append(chatRoomMemberAccountUUIDs, chatRoomMember.AccountUUID)
+	}
+
+	result = models.AccountSetting{}.ReadAllByAccountUUIDs(chatRoomMemberAccountUUIDs, &chatRoomMemberAccountSettings)
+
+	// TODO: 發生意外錯誤時
+	if result.Error != nil {
+		fmt.Println(result.Error)
+		return
+	}
+
+	result = models.AccountProfile{}.ReadAllByAccountUUIDs(chatRoomMemberAccountUUIDs, &chatRoomMemberAccountProfiles)
+
+	// TODO: 發生意外錯誤時
+	if result.Error != nil {
+		fmt.Println(result.Error)
+		return
+	}
+
+	// TODO: 寫法需要優化
+	var chatRoomMemberAccountSettingsMapping = make(map[string]models.AccountSetting)
+	var chatRoomMemberAccountProfilesMapping = make(map[string]models.AccountProfile)
 	var chatRoomMembersMapping = make(map[uint][]chatRoomMemberResponse)
+
+	for _, chatRoomMemberAccountSetting := range chatRoomMemberAccountSettings {
+		chatRoomMemberAccountSettingsMapping[chatRoomMemberAccountSetting.AccountUUID] = models.AccountSetting{
+			AccountID:   chatRoomMemberAccountSetting.AccountID,
+			AccountUUID: chatRoomMemberAccountSetting.AccountUUID,
+			Name:        chatRoomMemberAccountSetting.Name,
+			Locale:      chatRoomMemberAccountSetting.Locale,
+		}
+	}
+
+	for _, chatRoomMemberAccountProfile := range chatRoomMemberAccountProfiles {
+		chatRoomMemberAccountProfilesMapping[chatRoomMemberAccountProfile.AccountUUID] = models.AccountProfile{
+			AccountID:   chatRoomMemberAccountProfile.AccountID,
+			AccountUUID: chatRoomMemberAccountProfile.AccountUUID,
+			Avatar:      chatRoomMemberAccountProfile.Avatar,
+			Banner:      chatRoomMemberAccountProfile.Banner,
+			Signature:   chatRoomMemberAccountProfile.Signature,
+		}
+	}
 
 	for _, chatRoomMember := range chatRoomMembers {
 		chatRoomMembersMapping[chatRoomMember.ChatRoomID] = append(
 			chatRoomMembersMapping[chatRoomMember.ChatRoomID],
 			chatRoomMemberResponse{
 				AccountUUID:         chatRoomMember.AccountUUID,
+				Name:                chatRoomMemberAccountSettingsMapping[chatRoomMember.AccountUUID].Name,
+				Avatar:              chatRoomMemberAccountProfilesMapping[chatRoomMember.AccountUUID].Avatar,
 				Theme:               chatRoomMember.Theme,
 				EnabledNotification: chatRoomMember.EnabledNotification,
 				LastSeenAt:          chatRoomMember.LastSeenAt,
@@ -119,5 +170,268 @@ func getAllChatRoomHandler(msg message) {
 		StatusCode:    http.StatusOK,
 		StatusMessage: controllers.SuccessMessage,
 		Payload:       response,
+	}
+}
+
+type updateChatRoomSettingRequestPayload struct {
+	ChatRoomID uint   `json:"chatRoomId"`
+	Emoji      string `json:"emoji"`
+	Name       string `json:"name"`
+	Avatar     string `json:"avatar"`
+}
+
+func (updateChatRoomSettingRequestPayload) parse(data interface{}) (updateChatRoomSettingRequestPayload, error) {
+	p := updateChatRoomSettingRequestPayload{}
+
+	bytes, err := json.Marshal(data)
+
+	if err != nil {
+		return p, err
+	}
+
+	err = json.Unmarshal(bytes, &p)
+
+	return p, err
+}
+
+type updateChatRoomSettingResponse struct {
+	ChatRoomID uint   `json:"chatRoomId"`
+	Emoji      string `json:"emoji"`
+	Name       string `json:"name"`
+	Avatar     string `json:"avatar"`
+}
+
+func updateChatRoomSettingHandler(clients map[string]client, msg message) {
+	requestPayload, err := updateChatRoomSettingRequestPayload{}.parse(msg.Payload)
+
+	if err != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeRequestPayloadFieldNotValid,
+			StatusCode:    http.StatusBadRequest,
+			StatusMessage: controllers.ErrMessageRequestPayloadFieldNotValid,
+			Payload:       nil,
+		}
+		return
+	}
+
+	m := controllers.GetFilteredNilRequestPayloadMap(&requestPayload)
+
+	chatRoomModel := models.ChatRoom{
+		Model: gorm.Model{
+			ID: requestPayload.ChatRoomID,
+		},
+	}
+
+	result := chatRoomModel.UpdateByID(m)
+
+	if result.Error != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeServerDatabaseUpdateGotError,
+			StatusCode:    http.StatusInternalServerError,
+			StatusMessage: result.Error,
+			Payload:       nil,
+		}
+		return
+	}
+
+	var chatRoomMembers []models.ChatRoomMember
+
+	result = models.ChatRoomMember{}.ReadAllByChatRoomID(requestPayload.ChatRoomID, &chatRoomMembers)
+
+	if result.Error != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeServerDatabaseQueryGotError,
+			StatusCode:    http.StatusInternalServerError,
+			StatusMessage: result.Error,
+			Payload:       nil,
+		}
+		return
+	}
+
+	for _, chatRoomMember := range chatRoomMembers {
+		toCli, ok := clients[chatRoomMember.AccountUUID]
+		// TODO: 接收方不在線上時的處理
+		if !ok {
+			fmt.Printf("Friend: %s offline\n", chatRoomMember.AccountUUID)
+			continue
+		}
+
+		toCli <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			StatusCode:    http.StatusOK,
+			StatusMessage: controllers.SuccessMessage,
+			Payload: updateChatRoomSettingResponse{
+				ChatRoomID: requestPayload.ChatRoomID,
+				Emoji:      chatRoomModel.Emoji,
+				Name:       chatRoomModel.Name,
+				Avatar:     chatRoomModel.Avatar,
+			},
+		}
+	}
+}
+
+type updateChatRoomCustomSettingRequestPayload struct {
+	ChatRoomID          uint   `json:"chatRoomId"`
+	Theme               string `json:"theme"`
+	EnabledNotification string `json:"enabledNotification"`
+}
+
+func (updateChatRoomCustomSettingRequestPayload) parse(data interface{}) (updateChatRoomCustomSettingRequestPayload, error) {
+	p := updateChatRoomCustomSettingRequestPayload{}
+
+	bytes, err := json.Marshal(data)
+
+	if err != nil {
+		return p, err
+	}
+
+	err = json.Unmarshal(bytes, &p)
+
+	return p, err
+}
+
+func updateChatRoomCustomSettingHandler(msg message) {
+	requestPayload, err := updateChatRoomCustomSettingRequestPayload{}.parse(msg.Payload)
+
+	if err != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeRequestPayloadFieldNotValid,
+			StatusCode:    http.StatusBadRequest,
+			StatusMessage: controllers.ErrMessageRequestPayloadFieldNotValid,
+			Payload:       nil,
+		}
+		return
+	}
+
+	m := controllers.GetFilteredNilRequestPayloadMap(&requestPayload)
+
+	chatRoomMemberModel := models.ChatRoomMember{
+		ChatRoomID:  requestPayload.ChatRoomID,
+		AccountUUID: msg.Self.AccountUUID,
+	}
+
+	result := chatRoomMemberModel.UpdateByChatRoomIDAndAccountUUID(m)
+
+	if result.Error != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeServerDatabaseUpdateGotError,
+			StatusCode:    http.StatusInternalServerError,
+			StatusMessage: result.Error,
+			Payload:       nil,
+		}
+		return
+	}
+
+	*msg.Self.Channel <- message{
+		Seq:           msg.Seq,
+		Cmd:           msg.Cmd,
+		StatusCode:    http.StatusOK,
+		StatusMessage: controllers.SuccessMessage,
+		Payload:       nil,
+	}
+}
+
+type updateChatRoomLastSeenRequestPayload struct {
+	ChatRoomID uint `json:"chatRoomId"`
+}
+
+func (updateChatRoomLastSeenRequestPayload) parse(data interface{}) (updateChatRoomLastSeenRequestPayload, error) {
+	p := updateChatRoomLastSeenRequestPayload{}
+
+	bytes, err := json.Marshal(data)
+
+	if err != nil {
+		return p, err
+	}
+
+	err = json.Unmarshal(bytes, &p)
+
+	return p, err
+}
+
+type updateChatRoomCustomSettingResponse struct {
+	LastSeenAt time.Time `json:"lastSeenAt"`
+}
+
+func updateChatRoomLastSeenHandler(clients map[string]client, msg message) {
+	requestPayload, err := updateChatRoomLastSeenRequestPayload{}.parse(msg.Payload)
+
+	if err != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeRequestPayloadFieldNotValid,
+			StatusCode:    http.StatusBadRequest,
+			StatusMessage: controllers.ErrMessageRequestPayloadFieldNotValid,
+			Payload:       nil,
+		}
+		return
+	}
+
+	chatRoomMemberModel := models.ChatRoomMember{
+		ChatRoomID:  requestPayload.ChatRoomID,
+		AccountUUID: msg.Self.AccountUUID,
+	}
+
+	result := chatRoomMemberModel.UpdateByChatRoomIDAndAccountUUID(
+		map[string]interface{}{"LastSeenAt": time.Now()},
+	)
+
+	if result.Error != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeServerDatabaseUpdateGotError,
+			StatusCode:    http.StatusInternalServerError,
+			StatusMessage: result.Error,
+			Payload:       nil,
+		}
+		return
+	}
+
+	var chatRoomMembers []models.ChatRoomMember
+
+	result = models.ChatRoomMember{}.ReadAllByChatRoomID(requestPayload.ChatRoomID, &chatRoomMembers)
+
+	if result.Error != nil {
+		*msg.Self.Channel <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			CustomCode:    controllers.ErrCodeServerDatabaseQueryGotError,
+			StatusCode:    http.StatusInternalServerError,
+			StatusMessage: result.Error,
+			Payload:       nil,
+		}
+		return
+	}
+
+	for _, chatRoomMember := range chatRoomMembers {
+		toCli, ok := clients[chatRoomMember.AccountUUID]
+		// TODO: 接收方不在線上時的處理
+		if !ok {
+			fmt.Printf("Friend: %s offline\n", chatRoomMember.AccountUUID)
+			continue
+		}
+
+		toCli <- message{
+			Seq:           msg.Seq,
+			Cmd:           msg.Cmd,
+			StatusCode:    http.StatusOK,
+			StatusMessage: controllers.SuccessMessage,
+			Payload: updateChatRoomCustomSettingResponse{
+				LastSeenAt: chatRoomMemberModel.LastSeenAt,
+			},
+		}
 	}
 }

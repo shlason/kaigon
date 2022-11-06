@@ -235,13 +235,15 @@ type verifyWithEmailRequestPayload struct {
 
 type getInfoResponsePayload struct {
 	controllers.GormModelResponse
-	UUID  string `json:"uuid"`
-	Email string `json:"email"`
+	UUID            string `json:"uuid"`
+	Email           string `json:"email"`
+	IsEmailVerified bool   `json:"isEmailVerified"`
 }
 
 type patchInfoRequestPayload struct {
-	Email    *string `json:"eamil"`
-	Password *string `json:"password"`
+	Email            *string `json:"eamil"`
+	Password         *string `json:"password"`
+	OriginalPassword *string `json:"originalPassword"`
 }
 
 func (p *patchInfoRequestPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
@@ -253,7 +255,7 @@ func (p *patchInfoRequestPayload) check() (errResponse controllers.JSONResponse,
 		}, true
 	}
 
-	if !isValidPassword(*p.Password) {
+	if p.Password != nil && !isValidPassword(*p.Password) {
 		return controllers.JSONResponse{
 			Code:    controllers.ErrCodeRequestPayloadFieldNotValid,
 			Message: controllers.ErrMessageRequestPayloadFieldNotValid,

@@ -25,10 +25,12 @@ func clientManager() {
 	// map[AccountUUID]client
 	clients := make(map[string]client)
 
+	// TODO: 增加針對聊天室全體成員的廣播
 	for {
 		select {
 		case msg := <-messages:
 			// TODO: 回傳的 status message, code 需要討論和統整
+			// TODO: message 的 interface{} type payload 每次 parse 成相對應的 struct type 都需要重複寫 parse method 因此要想辦法抽出來複用
 			errResp, isNotValid := msg.Check()
 
 			if isNotValid {
@@ -42,11 +44,15 @@ func clientManager() {
 			case acceptRequestCmds["get_all_chat_room"]:
 				getAllChatRoomHandler(msg)
 			case acceptRequestCmds["get_chat_message"]:
+				getChatMessage(msg)
 			case acceptRequestCmds["send_chat_message"]:
 				sendChatMessageHandler(clients, msg)
-			case acceptRequestCmds["get_chat_room_setting"]:
 			case acceptRequestCmds["update_chat_room_setting"]:
-			case acceptRequestCmds["update_chat_room_account_setting"]:
+				updateChatRoomSettingHandler(clients, msg)
+			case acceptRequestCmds["update_chat_room_custom_setting"]:
+				updateChatRoomCustomSettingHandler(msg)
+			case acceptRequestCmds["have_read"]:
+				updateChatRoomLastSeenHandler(clients, msg)
 			}
 
 		case connInfo := <-clientConnect:

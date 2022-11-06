@@ -11,7 +11,7 @@ type Account struct {
 	UUID            string `gorm:"unique; not null;"`
 	Email           string `gorm:"unique; not null;"`
 	Password        string
-	IsEmailVerified bool
+	IsEmailVerified bool `gorm:"default:false;"`
 }
 
 func (account *Account) Create() *gorm.DB {

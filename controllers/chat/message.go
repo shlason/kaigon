@@ -3,24 +3,24 @@ package chat
 import "net/http"
 
 var acceptRequestCmds = map[string]string{
-	"ping":                             "ping",
-	"get_all_chat_room":                "get_all_chat_room",
-	"get_chat_message":                 "get_chat_message",
-	"send_chat_message":                "send_chat_message",
-	"get_chat_room_setting":            "get_chat_room_setting",
-	"update_chat_room_setting":         "update_chat_room_setting",
-	"update_chat_room_account_setting": "update_chat_room_account_setting",
+	"ping":                            "ping",
+	"get_all_chat_room":               "get_all_chat_room",
+	"get_chat_message":                "get_chat_message",
+	"send_chat_message":               "send_chat_message",
+	"update_chat_room_setting":        "update_chat_room_setting",
+	"update_chat_room_custom_setting": "update_chat_room_custom_setting",
+	"have_read":                       "have_read",
 }
 
 var acceptResponseCmds = map[string]string{
-	"pong":                             "pong",
-	"get_all_chat_room":                "get_all_chat_room",
-	"get_chat_message":                 "get_chat_message",
-	"send_chat_message":                "send_chat_message",
-	"get_chat_room_setting":            "get_chat_room_setting",
-	"update_chat_room_setting":         "update_chat_room_setting",
-	"update_chat_room_account_setting": "update_chat_room_account_setting",
-	"received":                         "received",
+	"pong":                            "pong",
+	"get_all_chat_room":               "get_all_chat_room",
+	"get_chat_message":                "get_chat_message",
+	"send_chat_message":               "send_chat_message",
+	"update_chat_room_setting":        "update_chat_room_setting",
+	"update_chat_room_custom_setting": "update_chat_room_custom_setting",
+	"received":                        "received",
+	"have_read":                       "have_read",
 }
 
 type selfInfo struct {
