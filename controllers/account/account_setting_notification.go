@@ -67,13 +67,13 @@ func GetSettingNotification(c *gin.Context) {
 // @Accept      json
 // @Produce     json
 // @Security    ApiKeyAuth
-// @Param       followOrOwnArticleReply body     uint true "我追蹤的/我的文章有新留言 (0: 關閉, 1: 所有留言, 2: 標註我的留言)"
-// @Param       commentTagged           body     bool true "我的留言被標注"
-// @Param       articleTweet            body     bool true "我的文章獲得心情"
-// @Param       commentTweet            body     bool true "我的留言獲得愛心"
-// @Param       interestRecommendation  body     bool true "我可能感興趣的內容"
-// @Param       chat                    body     bool true "聊天通知"
-// @Param       followed                body     bool true "被人追蹤時"
+// @Param       followOrOwnArticleReply body     uint   true "我追蹤的/我的文章有新留言 (0: 關閉, 1: 所有留言, 2: 標註我的留言)"
+// @Param       commentTagged           body     string true "我的留言被標注 (!!! 該值為 boolean !!!)"
+// @Param       articleTweet            body     string true "我的文章獲得心情 (!!! 該值為 boolean !!!)"
+// @Param       commentTweet            body     string true "我的留言獲得愛心 (!!! 該值為 boolean !!!)"
+// @Param       interestRecommendation  body     string true "我可能感興趣的內容 (!!! 該值為 boolean !!!)"
+// @Param       chat                    body     string true "聊天通知 (!!! 該值為 boolean !!!)"
+// @Param       followed                body     string true "被人追蹤時 (!!! 該值為 boolean !!!)"
 // @Success     200                     {object} controllers.JSONResponse
 // @Failure     400                     {object} controllers.JSONResponse
 // @Failure     500                     {object} controllers.JSONResponse

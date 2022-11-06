@@ -484,57 +484,57 @@ const docTemplate = `{
                         }
                     },
                     {
-                        "description": "我的留言被標注",
+                        "description": "我的留言被標注 (!!! 該值為 boolean !!!)",
                         "name": "commentTagged",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "boolean"
+                            "type": "string"
                         }
                     },
                     {
-                        "description": "我的文章獲得心情",
+                        "description": "我的文章獲得心情 (!!! 該值為 boolean !!!)",
                         "name": "articleTweet",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "boolean"
+                            "type": "string"
                         }
                     },
                     {
-                        "description": "我的留言獲得愛心",
+                        "description": "我的留言獲得愛心 (!!! 該值為 boolean !!!)",
                         "name": "commentTweet",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "boolean"
+                            "type": "string"
                         }
                     },
                     {
-                        "description": "我可能感興趣的內容",
+                        "description": "我可能感興趣的內容 (!!! 該值為 boolean !!!)",
                         "name": "interestRecommendation",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "boolean"
+                            "type": "string"
                         }
                     },
                     {
-                        "description": "聊天通知",
+                        "description": "聊天通知 (!!! 該值為 boolean !!!)",
                         "name": "chat",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "boolean"
+                            "type": "string"
                         }
                     },
                     {
-                        "description": "被人追蹤時",
+                        "description": "被人追蹤時 (!!! 該值為 boolean !!!)",
                         "name": "followed",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "boolean"
+                            "type": "string"
                         }
                     }
                 ],

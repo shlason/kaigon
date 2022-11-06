@@ -433,42 +433,42 @@ paths:
         required: true
         schema:
           type: integer
-      - description: 我的留言被標注
+      - description: 我的留言被標注 (!!! 該值為 boolean !!!)
         in: body
         name: commentTagged
         required: true
         schema:
-          type: boolean
-      - description: 我的文章獲得心情
+          type: string
+      - description: 我的文章獲得心情 (!!! 該值為 boolean !!!)
         in: body
         name: articleTweet
         required: true
         schema:
-          type: boolean
-      - description: 我的留言獲得愛心
+          type: string
+      - description: 我的留言獲得愛心 (!!! 該值為 boolean !!!)
         in: body
         name: commentTweet
         required: true
         schema:
-          type: boolean
-      - description: 我可能感興趣的內容
+          type: string
+      - description: 我可能感興趣的內容 (!!! 該值為 boolean !!!)
         in: body
         name: interestRecommendation
         required: true
         schema:
-          type: boolean
-      - description: 聊天通知
+          type: string
+      - description: 聊天通知 (!!! 該值為 boolean !!!)
         in: body
         name: chat
         required: true
         schema:
-          type: boolean
-      - description: 被人追蹤時
+          type: string
+      - description: 被人追蹤時 (!!! 該值為 boolean !!!)
         in: body
         name: followed
         required: true
         schema:
-          type: boolean
+          type: string
       produces:
       - application/json
       responses:
