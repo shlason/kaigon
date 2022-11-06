@@ -208,6 +208,11 @@ paths:
         name: password
         schema:
           type: string
+      - description: Account Original Passsword
+        in: body
+        name: originalPassword
+        schema:
+          type: string
       produces:
       - application/json
       responses:

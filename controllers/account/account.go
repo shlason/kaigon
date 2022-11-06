@@ -554,13 +554,13 @@ func GetInfo(c *gin.Context) {
 // @Accept      json
 // @Produce     json
 // @Security    ApiKeyAuth
-// @Param       email    body     string false "Account Email"
-// @Param       password body     string false "Account Password"
+// @Param       email            body     string false "Account Email"
+// @Param       password         body     string false "Account Password"
 // @Param       originalPassword body     string false "Account Original Passsword"
-// @Success     200      {object} controllers.JSONResponse
-// @Failure     400      {object} controllers.JSONResponse
-// @Failure     409      {object} controllers.JSONResponse
-// @Failure     500      {object} controllers.JSONResponse
+// @Success     200              {object} controllers.JSONResponse
+// @Failure     400              {object} controllers.JSONResponse
+// @Failure     409              {object} controllers.JSONResponse
+// @Failure     500              {object} controllers.JSONResponse
 // @Router      /account/:accountUUID/info [patch]
 func PatchInfo(c *gin.Context) {
 	var requestPayload *patchInfoRequestPayload
