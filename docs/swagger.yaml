@@ -998,22 +998,6 @@ paths:
       consumes:
       - application/json
       description: 使用 Cookie 中的 REFRESH_TOKEN field 來獲取 authToken
-      parameters:
-      - description: Account ID
-        in: query
-        name: accountId
-        required: true
-        type: integer
-      - description: Account UUID
-        in: query
-        name: accountUuid
-        required: true
-        type: string
-      - description: Account Email
-        in: query
-        name: email
-        required: true
-        type: string
       produces:
       - application/json
       responses:

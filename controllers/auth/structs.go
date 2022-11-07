@@ -3,7 +3,6 @@ package auth
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/shlason/kaigon/controllers"
-	"github.com/shlason/kaigon/utils"
 )
 
 type getOAuthUrlQueryParmas struct {
@@ -53,23 +52,6 @@ type googleOAuthRedirectURIForBindQueryParams struct {
 
 type googleOAuthBindRequestPayload struct {
 	GrantCode string `json:"grantCode"`
-}
-
-type getAuthTokenByRefreshTokenRequestParamsPayload struct {
-	AccountID   uint   `form:"accountId"`
-	AccountUUID string `form:"accountUuid"`
-	Email       string `form:"email"`
-}
-
-func (p *getAuthTokenByRefreshTokenRequestParamsPayload) check() (errResponse controllers.JSONResponse, isNotValid bool) {
-	if utils.IsValidEmailAddress(p.Email) {
-		return controllers.JSONResponse{}, false
-	}
-	return controllers.JSONResponse{
-		Code:    ErrCodeRequestQueryParamEmailFieldNotValid,
-		Message: ErrMessageRequestQueryParamEmailFieldNotValid,
-		Data:    nil,
-	}, true
 }
 
 type getAuthTokenByRefreshTokenResponsePayload struct {

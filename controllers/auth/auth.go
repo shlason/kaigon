@@ -241,7 +241,8 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			AccountUUID: am.UUID,
 			Email:       am.Email,
 		}
-		err = session.Read()
+		err = session.ReadByAccount()
+
 		if !(err == nil || err == redis.Nil) {
 			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
 				Code:    controllers.ErrCodeServerRedisGetKeyGotError,
@@ -326,7 +327,8 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		AccountUUID: accountModel.UUID,
 		Email:       accountModel.Email,
 	}
-	err = session.Read()
+
+	err = session.ReadByAccount()
 	if !(err == nil || err == redis.Nil) {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
 			Code:    controllers.ErrCodeServerRedisGetKeyGotError,
@@ -345,6 +347,7 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 			return
 		}
 	}
+
 	c.SetCookie(
 		constants.RefreshTokenCookieInfo.Name,
 		session.Token,
@@ -478,13 +481,10 @@ func GoogleOAuthBind(c *gin.Context) {
 // @Tags        auth
 // @Accept      json
 // @Produce     json
-// @Param       accountId   query    uint   true "Account ID"
-// @Param       accountUuid query    string true "Account UUID"
-// @Param       email       query    string true "Account Email"
-// @Success     200         {object} controllers.JSONResponse{data=getAuthTokenByRefreshTokenResponsePayload}
-// @Failure     400         {object} controllers.JSONResponse
-// @Failure     401         {object} controllers.JSONResponse
-// @Failure     500         {object} controllers.JSONResponse
+// @Success     200 {object} controllers.JSONResponse{data=getAuthTokenByRefreshTokenResponsePayload}
+// @Failure     400 {object} controllers.JSONResponse
+// @Failure     401 {object} controllers.JSONResponse
+// @Failure     500 {object} controllers.JSONResponse
 // @Router      /auth/session/token/refresh [get]
 func GetAuthTokenByRefreshToken(c *gin.Context) {
 	token, err := c.Cookie(constants.RefreshTokenCookieInfo.Name)
@@ -496,53 +496,13 @@ func GetAuthTokenByRefreshToken(c *gin.Context) {
 		})
 		return
 	}
-	requestParams := getAuthTokenByRefreshTokenRequestParamsPayload{}
-	err = c.BindQuery(&requestParams)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
-			Code:    ErrCodeRequestQueryParamsAccountUUIDFieldNotValid,
-			Message: ErrMessageRequestQueryParamsAccountUUIDFieldNotValid,
-			Data:    nil,
-		})
-		return
-	}
-	errResp, isNotValid := requestParams.check()
-	if isNotValid {
-		c.JSON(http.StatusBadRequest, errResp)
-		return
-	}
+
 	session := models.Session{
-		AccountID:   requestParams.AccountID,
-		AccountUUID: requestParams.AccountUUID,
-		Email:       requestParams.Email,
+		Token: token,
 	}
-	err = session.Read()
-	if err != nil {
-		if err == redis.Nil {
-			c.SetCookie(
-				constants.RefreshTokenCookieInfo.Name,
-				"",
-				-1,
-				constants.RefreshTokenCookieInfo.Path,
-				constants.RefreshTokenCookieInfo.Domain,
-				constants.RefreshTokenCookieInfo.Secure,
-				constants.RefreshTokenCookieInfo.HttpOnly,
-			)
-			c.JSON(http.StatusUnauthorized, controllers.JSONResponse{
-				Code:    ErrCodeRequestHeaderCookieRefreshTokenFieldUnauthorized,
-				Message: ErrMessageRequestHeaderCookieRefreshTokenFieldUnauthorized,
-				Data:    nil,
-			})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
-			Code:    controllers.ErrCodeServerRedisGetKeyGotError,
-			Message: err,
-			Data:    nil,
-		})
-		return
-	}
-	if session.Token != token {
+	err = session.ReadByToken()
+
+	if err == redis.Nil {
 		c.SetCookie(
 			constants.RefreshTokenCookieInfo.Name,
 			"",
@@ -555,6 +515,15 @@ func GetAuthTokenByRefreshToken(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, controllers.JSONResponse{
 			Code:    ErrCodeRequestHeaderCookieRefreshTokenFieldUnauthorized,
 			Message: ErrMessageRequestHeaderCookieRefreshTokenFieldUnauthorized,
+			Data:    nil,
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisGetKeyGotError,
+			Message: err,
 			Data:    nil,
 		})
 		return

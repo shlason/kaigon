@@ -177,7 +177,8 @@ func SignIn(c *gin.Context) {
 		AccountUUID: accountModel.UUID,
 		Email:       accountModel.Email,
 	}
-	err = session.Read()
+	err = session.ReadByAccount()
+
 	if !(err == nil || err == redis.Nil) {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
 			Code:    controllers.ErrCodeServerRedisGetKeyGotError,
