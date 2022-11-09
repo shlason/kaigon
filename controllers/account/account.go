@@ -213,6 +213,43 @@ func SignIn(c *gin.Context) {
 	})
 }
 
+func SignOut(c *gin.Context) {
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+
+	sessionModel := &models.Session{
+		AccountID:   authPayload.AccountID,
+		AccountUUID: authPayload.AccountUUID,
+		Email:       authPayload.Email,
+	}
+
+	err := sessionModel.Delete()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisDeleteKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.SetCookie(
+		constants.RefreshTokenCookieInfo.Name,
+		"",
+		-1,
+		constants.RefreshTokenCookieInfo.Path,
+		constants.RefreshTokenCookieInfo.Domain,
+		constants.RefreshTokenCookieInfo.Secure,
+		constants.RefreshTokenCookieInfo.HttpOnly,
+	)
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
+	})
+}
+
 // @Summary     啟動驗證階段
 // @Description 發送 Email 認證信
 // @Tags        accounts

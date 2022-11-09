@@ -8,6 +8,7 @@ import (
 func RegisteAccountRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	publicR.POST("/account/signup", account.SignUp)
 	publicR.POST("/account/signin", account.SignIn)
+	privateR.GET("/account/signout", account.SignOut)
 
 	publicR.POST("/account/info/password/reset", account.CreateResetPasswordSession)
 	publicR.PATCH("/account/info/password/reset", account.ResetPassword)
