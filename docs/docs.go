@@ -783,6 +783,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/account/signout": {
+            "get": {
+                "description": "登出帳號收回和刪除 refresh token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "登出帳號",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/account/signup": {
             "post": {
                 "description": "使用 Email, Password, Captcha Info 等資訊來註冊",
@@ -1344,29 +1373,6 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "取得 authToken",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Account ID",
-                        "name": "accountId",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Account UUID",
-                        "name": "accountUuid",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Account Email",
-                        "name": "email",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",

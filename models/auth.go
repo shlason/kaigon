@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -20,22 +21,56 @@ type Session struct {
 
 func (s *Session) Create() error {
 	s.Token = uuid.NewString()
+
+	jsonBytes, err := json.Marshal(s)
+
+	if err != nil {
+		return err
+	}
+
+	err = rdb.SetNX(
+		rctx,
+		fmt.Sprintf("auth:session:account:%d/%s/%s", s.AccountID, s.AccountUUID, s.Email),
+		s.Token,
+		time.Duration(constants.RefreshTokenCookieInfo.MaxAge)*time.Second,
+	).Err()
+
+	if err != nil {
+		return err
+	}
+
 	return rdb.SetNX(
 		rctx,
-		fmt.Sprintf("auth:session:refresh_token:%d/%s/%s", s.AccountID, s.AccountUUID, s.Email),
-		s.Token,
+		fmt.Sprintf("auth:session:refresh_token:%s", s.Token),
+		string(jsonBytes),
 		time.Duration(constants.RefreshTokenCookieInfo.MaxAge)*time.Second,
 	).Err()
 }
 
-func (s *Session) Read() error {
-	val, err := rdb.Get(rctx, fmt.Sprintf("auth:session:refresh_token:%d/%s/%s", s.AccountID, s.AccountUUID, s.Email)).Result()
+func (s *Session) ReadByToken() error {
+	val, err := rdb.Get(rctx, fmt.Sprintf("auth:session:refresh_token:%s", s.Token)).Result()
+
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal([]byte(val), &s)
+}
+
+func (s *Session) ReadByAccount() error {
+	val, err := rdb.Get(rctx, fmt.Sprintf("auth:session:account:%d/%s/%s", s.AccountID, s.AccountUUID, s.Email)).Result()
 	s.Token = val
 	return err
 }
 
 func (s *Session) Delete() error {
-	return rdb.Del(rctx, fmt.Sprintf("auth:session:refresh_token:%d/%s/%s", s.AccountID, s.AccountUUID, s.Email)).Err()
+	err := rdb.Del(rctx, fmt.Sprintf("auth:session:account:%d/%s/%s", s.AccountID, s.AccountUUID, s.Email)).Err()
+
+	if err != nil {
+		return err
+	}
+
+	return rdb.Del(rctx, fmt.Sprintf("auth:session:refresh_token:%s", s.Token)).Err()
 }
 
 type JWTToken struct {

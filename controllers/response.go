@@ -35,6 +35,7 @@ const (
 	ErrCodeServerRedisSetNXKeyGotError    string = "err-500-srsnxkge"
 	ErrCodeServerRedisSetKeyGotError      string = "err-500-srskge"
 	ErrCodeServerRedisGetKeyGotError      string = "err-500-srgkge"
+	ErrCodeServerRedisDeleteKeyGotError   string = "err-500-srdkge"
 	ErrCodeServerSendEmailGotError        string = "err-500-ssege"
 	ErrCodeServerGenerateJWTTokenGotError string = "err-500-sgjwttge"
 )

@@ -71,10 +71,20 @@ func SignUp(c *gin.Context) {
 		Password: string(hashPwd),
 	}
 	result := accountModel.ReadByEmail()
-	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+
+	if result.Error == nil {
 		c.JSON(http.StatusConflict, controllers.JSONResponse{
 			Code:    errCodeRequestPayloadEmailFieldDatabaseRecordAlreadyExist,
 			Message: errMessageRequestPayloadEmailFieldDatabaseRecordAlreadyExist,
+			Data:    nil,
+		})
+		return
+	}
+
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: result.Error,
 			Data:    nil,
 		})
 		return
@@ -167,7 +177,8 @@ func SignIn(c *gin.Context) {
 		AccountUUID: accountModel.UUID,
 		Email:       accountModel.Email,
 	}
-	err = session.Read()
+	err = session.ReadByAccount()
+
 	if !(err == nil || err == redis.Nil) {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
 			Code:    controllers.ErrCodeServerRedisGetKeyGotError,
@@ -195,6 +206,52 @@ func SignIn(c *gin.Context) {
 		constants.RefreshTokenCookieInfo.Secure,
 		constants.RefreshTokenCookieInfo.HttpOnly,
 	)
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
+	})
+}
+
+// @Summary     登出帳號
+// @Description 登出帳號收回和刪除 refresh token
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Header      200 {string} Cookie "Refresh Token Clear"
+// @Success     200 {object} controllers.JSONResponse
+// @Failure     500 {object} controllers.JSONResponse
+// @Router      /account/signout [get]
+func SignOut(c *gin.Context) {
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+
+	sessionModel := &models.Session{
+		AccountID:   authPayload.AccountID,
+		AccountUUID: authPayload.AccountUUID,
+		Email:       authPayload.Email,
+	}
+
+	err := sessionModel.Delete()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisDeleteKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.SetCookie(
+		constants.RefreshTokenCookieInfo.Name,
+		"",
+		-1,
+		constants.RefreshTokenCookieInfo.Path,
+		constants.RefreshTokenCookieInfo.Domain,
+		constants.RefreshTokenCookieInfo.Secure,
+		constants.RefreshTokenCookieInfo.HttpOnly,
+	)
+
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
