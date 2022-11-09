@@ -735,6 +735,25 @@ paths:
       summary: 登入帳號
       tags:
       - accounts
+  /account/signout:
+    get:
+      consumes:
+      - application/json
+      description: 登出帳號收回和刪除 refresh token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 登出帳號
+      tags:
+      - accounts
   /account/signup:
     post:
       consumes:

@@ -213,6 +213,15 @@ func SignIn(c *gin.Context) {
 	})
 }
 
+// @Summary     登出帳號
+// @Description 登出帳號收回和刪除 refresh token
+// @Tags        accounts
+// @Accept      json
+// @Produce     json
+// @Header      200 {string} Cookie "Refresh Token Clear"
+// @Success     200 {object} controllers.JSONResponse
+// @Failure     500 {object} controllers.JSONResponse
+// @Router      /account/signout [get]
 func SignOut(c *gin.Context) {
 	authPayload := c.MustGet("authPayload").(*models.JWTToken)
 
