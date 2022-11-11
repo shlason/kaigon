@@ -13,8 +13,10 @@ type refreshTokenCookieInfo struct {
 	Domain   string
 	Secure   bool
 	HttpOnly bool
+	SameSite int
 }
 
+// TODO: 到時候前端部署上 Server 後，記得改 secure: true, sameSite: 2
 var RefreshTokenCookieInfo = refreshTokenCookieInfo{
 	Name: "REFRESH_TOKEN",
 	// Second Base -> 分 -> 小時 -> 天 -> 20 天
@@ -23,4 +25,5 @@ var RefreshTokenCookieInfo = refreshTokenCookieInfo{
 	Domain:   fmt.Sprintf(".%s", configs.Server.Host),
 	Secure:   false,
 	HttpOnly: true,
+	SameSite: 4,
 }
