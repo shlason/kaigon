@@ -23,7 +23,7 @@ var RefreshTokenCookieInfo = refreshTokenCookieInfo{
 	MaxAge:   60 * 60 * 24 * 20,
 	Path:     "/",
 	Domain:   fmt.Sprintf(".%s", configs.Server.Host),
-	Secure:   false,
+	Secure:   true,
 	HttpOnly: true,
 	SameSite: 1,
 }
