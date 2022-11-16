@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/shlason/kaigon/configs"
 	"github.com/shlason/kaigon/docs"
@@ -46,7 +45,7 @@ func main() {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Common Middlewares
-	r.Use(cors.Default())
+	r.Use(middlewares.CORS())
 	r.Use(gin.Recovery())
 
 	// Public API

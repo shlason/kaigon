@@ -197,15 +197,16 @@ func SignIn(c *gin.Context) {
 			return
 		}
 	}
-	c.SetCookie(
-		constants.RefreshTokenCookieInfo.Name,
-		session.Token,
-		constants.RefreshTokenCookieInfo.MaxAge,
-		constants.RefreshTokenCookieInfo.Path,
-		constants.RefreshTokenCookieInfo.Domain,
-		constants.RefreshTokenCookieInfo.Secure,
-		constants.RefreshTokenCookieInfo.HttpOnly,
-	)
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     constants.RefreshTokenCookieInfo.Name,
+		Value:    session.Token,
+		Path:     constants.RefreshTokenCookieInfo.Path,
+		Domain:   constants.RefreshTokenCookieInfo.Domain,
+		MaxAge:   constants.RefreshTokenCookieInfo.MaxAge,
+		Secure:   constants.RefreshTokenCookieInfo.Secure,
+		HttpOnly: constants.RefreshTokenCookieInfo.HttpOnly,
+		SameSite: http.SameSite(constants.RefreshTokenCookieInfo.SameSite),
+	})
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
@@ -242,16 +243,16 @@ func SignOut(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(
-		constants.RefreshTokenCookieInfo.Name,
-		"",
-		-1,
-		constants.RefreshTokenCookieInfo.Path,
-		constants.RefreshTokenCookieInfo.Domain,
-		constants.RefreshTokenCookieInfo.Secure,
-		constants.RefreshTokenCookieInfo.HttpOnly,
-	)
-
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     constants.RefreshTokenCookieInfo.Name,
+		Value:    "",
+		Path:     constants.RefreshTokenCookieInfo.Path,
+		Domain:   constants.RefreshTokenCookieInfo.Domain,
+		MaxAge:   -1,
+		Secure:   constants.RefreshTokenCookieInfo.Secure,
+		HttpOnly: constants.RefreshTokenCookieInfo.HttpOnly,
+		SameSite: http.SameSite(constants.RefreshTokenCookieInfo.SameSite),
+	})
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,

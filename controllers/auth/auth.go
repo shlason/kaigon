@@ -261,15 +261,16 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 				return
 			}
 		}
-		c.SetCookie(
-			constants.RefreshTokenCookieInfo.Name,
-			session.Token,
-			constants.RefreshTokenCookieInfo.MaxAge,
-			constants.RefreshTokenCookieInfo.Path,
-			constants.RefreshTokenCookieInfo.Domain,
-			constants.RefreshTokenCookieInfo.Secure,
-			constants.RefreshTokenCookieInfo.HttpOnly,
-		)
+		http.SetCookie(c.Writer, &http.Cookie{
+			Name:     constants.RefreshTokenCookieInfo.Name,
+			Value:    session.Token,
+			Path:     constants.RefreshTokenCookieInfo.Path,
+			Domain:   constants.RefreshTokenCookieInfo.Domain,
+			MaxAge:   constants.RefreshTokenCookieInfo.MaxAge,
+			Secure:   constants.RefreshTokenCookieInfo.Secure,
+			HttpOnly: constants.RefreshTokenCookieInfo.HttpOnly,
+			SameSite: http.SameSite(constants.RefreshTokenCookieInfo.SameSite),
+		})
 		c.Redirect(http.StatusFound, fmt.Sprintf(
 			"%s://%s%s?success=1",
 			configs.Server.Protocol,
@@ -348,15 +349,16 @@ func GoogleOAuthRedirectURIForLogin(c *gin.Context) {
 		}
 	}
 
-	c.SetCookie(
-		constants.RefreshTokenCookieInfo.Name,
-		session.Token,
-		constants.RefreshTokenCookieInfo.MaxAge,
-		constants.RefreshTokenCookieInfo.Path,
-		constants.RefreshTokenCookieInfo.Domain,
-		constants.RefreshTokenCookieInfo.Secure,
-		constants.RefreshTokenCookieInfo.HttpOnly,
-	)
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     constants.RefreshTokenCookieInfo.Name,
+		Value:    session.Token,
+		Path:     constants.RefreshTokenCookieInfo.Path,
+		Domain:   constants.RefreshTokenCookieInfo.Domain,
+		MaxAge:   constants.RefreshTokenCookieInfo.MaxAge,
+		Secure:   constants.RefreshTokenCookieInfo.Secure,
+		HttpOnly: constants.RefreshTokenCookieInfo.HttpOnly,
+		SameSite: http.SameSite(constants.RefreshTokenCookieInfo.SameSite),
+	})
 
 	c.Redirect(http.StatusFound, fmt.Sprintf(
 		"%s://%s%s?success=1",
@@ -503,15 +505,16 @@ func GetAuthTokenByRefreshToken(c *gin.Context) {
 	err = session.ReadByToken()
 
 	if err == redis.Nil {
-		c.SetCookie(
-			constants.RefreshTokenCookieInfo.Name,
-			"",
-			-1,
-			constants.RefreshTokenCookieInfo.Path,
-			constants.RefreshTokenCookieInfo.Domain,
-			constants.RefreshTokenCookieInfo.Secure,
-			constants.RefreshTokenCookieInfo.HttpOnly,
-		)
+		http.SetCookie(c.Writer, &http.Cookie{
+			Name:     constants.RefreshTokenCookieInfo.Name,
+			Value:    "",
+			Path:     constants.RefreshTokenCookieInfo.Path,
+			Domain:   constants.RefreshTokenCookieInfo.Domain,
+			MaxAge:   -1,
+			Secure:   constants.RefreshTokenCookieInfo.Secure,
+			HttpOnly: constants.RefreshTokenCookieInfo.HttpOnly,
+			SameSite: http.SameSite(constants.RefreshTokenCookieInfo.SameSite),
+		})
 		c.JSON(http.StatusUnauthorized, controllers.JSONResponse{
 			Code:    ErrCodeRequestHeaderCookieRefreshTokenFieldUnauthorized,
 			Message: ErrMessageRequestHeaderCookieRefreshTokenFieldUnauthorized,
