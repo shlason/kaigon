@@ -3,6 +3,8 @@ package chat
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/shlason/kaigon/controllers"
 )
 
 type chatRoomMemberResponse struct {
@@ -94,4 +96,36 @@ func (updateChatRoomLastSeenRequestPayload) parse(data interface{}) (updateChatR
 
 type updateChatRoomCustomSettingResponse struct {
 	LastSeenAt time.Time `json:"lastSeenAt"`
+}
+
+type createRoomRequestPayload struct {
+	Type   string `json:"type"`
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+}
+
+func (p createRoomRequestPayload) check() (errResp controllers.JSONResponse, isNotValid bool) {
+	const maximumNameLength = 20
+	var acceptTypes = map[string]string{
+		"personal": "personal",
+		"group":    "group",
+	}
+
+	if _, ok := acceptTypes[p.Type]; !ok {
+		return controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestPayloadFieldNotValid,
+			Message: controllers.ErrMessageRequestPayloadFieldNotValid,
+			Data:    nil,
+		}, true
+	}
+
+	if len(p.Name) > maximumNameLength {
+		return controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestPayloadFieldNotValid,
+			Message: controllers.ErrMessageRequestPayloadFieldNotValid,
+			Data:    nil,
+		}, true
+	}
+
+	return controllers.JSONResponse{}, false
 }
