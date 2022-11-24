@@ -1,8 +1,10 @@
 package chat
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -383,5 +385,66 @@ func CreateRoom(c *gin.Context) {
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
 		Data:    nil,
+	})
+}
+
+func GetRoomInviteCode(c *gin.Context) {
+	chatRoomID, err := strconv.ParseUint(c.Param("chatRoomID"), 10, 22)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+
+	chatRoomMemberModel := models.ChatRoomMember{
+		ChatRoomID:  uint(chatRoomID),
+		AccountUUID: authPayload.AccountUUID,
+	}
+	result := chatRoomMemberModel.ReadByChatRoomIDAndAccountUUID()
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusForbidden, controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestPermissionForbidden,
+			Message: controllers.ErrMessageRequestPermissionForbidden,
+			Data:    nil,
+		})
+		return
+	}
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	ChatRoomInviteCodeModel := models.ChatRoomInviteCode{
+		ChatRoomID: chatRoomMemberModel.ChatRoomID,
+	}
+	err = ChatRoomInviteCodeModel.Create()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisSetNXKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data: getRoomInviteCodeResponse{
+			Code: ChatRoomInviteCodeModel.Code,
+		},
 	})
 }

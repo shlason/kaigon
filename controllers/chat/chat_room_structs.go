@@ -129,3 +129,7 @@ func (p createRoomRequestPayload) check() (errResp controllers.JSONResponse, isN
 
 	return controllers.JSONResponse{}, false
 }
+
+type getRoomInviteCodeResponse struct {
+	Code string `json:"code"`
+}

@@ -20,6 +20,10 @@ func (acr *ChatRoomMember) Create() *gorm.DB {
 	return db.Create(&acr)
 }
 
+func (acr *ChatRoomMember) ReadByChatRoomIDAndAccountUUID() *gorm.DB {
+	return db.First(&acr, "chat_room_id = ? AND account_uuid = ?", acr.ChatRoomID, acr.AccountUUID)
+}
+
 func (acr ChatRoomMember) ReadAllByChatRoomID(chatRoomID uint, list *[]ChatRoomMember) *gorm.DB {
 	return db.Where("chat_room_id = ?", chatRoomID).Find(&list)
 }

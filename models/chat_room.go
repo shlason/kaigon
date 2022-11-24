@@ -1,8 +1,11 @@
 package models
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -31,4 +34,15 @@ func (ChatRoom) ReadAllByIDs(ids []interface{}, list *[]ChatRoom) *gorm.DB {
 
 func (cr *ChatRoom) UpdateByID(m map[string]interface{}) *gorm.DB {
 	return db.Model(&cr).Where("id = ?", cr.ID).Updates(m)
+}
+
+// Redis
+type ChatRoomInviteCode struct {
+	Code       string
+	ChatRoomID uint
+}
+
+func (cric *ChatRoomInviteCode) Create() error {
+	cric.Code = uuid.NewString()
+	return rdb.SetNX(rctx, fmt.Sprintf("chat:room:invite:code:%s", cric.Code), cric.ChatRoomID, 10*time.Minute).Err()
 }

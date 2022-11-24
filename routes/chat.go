@@ -10,7 +10,7 @@ func RegisteChatRoutes(r *gin.RouterGroup) {
 	// Create chat room
 	r.POST("/chat/room", chat.CreateRoom)
 	// Get chat room invite code
-	r.GET("/chat/room/:chatRoomID/invite/code")
+	r.GET("/chat/room/:chatRoomID/invite/code", chat.GetRoomInviteCode)
 	// Join chat room by invite code
 	r.PATCH("/chat/room/:chatRoomID/invite/code/:inviteCode")
 	// Update chat room related setting
