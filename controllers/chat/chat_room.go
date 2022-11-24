@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
 	"gorm.io/gorm"
@@ -446,5 +447,57 @@ func GetRoomInviteCode(c *gin.Context) {
 		Data: getRoomInviteCodeResponse{
 			Code: ChatRoomInviteCodeModel.Code,
 		},
+	})
+}
+
+func UpdateRoomMemberByInviteCode(c *gin.Context) {
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+	inviteCode := c.Param("inviteCode")
+
+	chatRoomInviteCodeModel := models.ChatRoomInviteCode{
+		Code: inviteCode,
+	}
+
+	err := chatRoomInviteCodeModel.Read()
+
+	if errors.Is(err, redis.Nil) {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    errCodeRequestChatRoomInviteCodeExpired,
+			Message: errMessageRequestChatRoomInviteCodeExpired,
+			Data:    nil,
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisGetKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	chatRoomMemberModel := &models.ChatRoomMember{
+		ChatRoomID:  chatRoomInviteCodeModel.ChatRoomID,
+		AccountUUID: authPayload.AccountUUID,
+	}
+	result := chatRoomMemberModel.Create()
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseCreateGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	// TODO: websocket broadcast，發送系統訊息到該聊天室，以此來廣播通知該聊天室的所有成員有新成員的加入
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
 	})
 }

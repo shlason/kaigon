@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -45,4 +46,21 @@ type ChatRoomInviteCode struct {
 func (cric *ChatRoomInviteCode) Create() error {
 	cric.Code = uuid.NewString()
 	return rdb.SetNX(rctx, fmt.Sprintf("chat:room:invite:code:%s", cric.Code), cric.ChatRoomID, 10*time.Minute).Err()
+}
+
+func (cric *ChatRoomInviteCode) Read() error {
+	val, err := rdb.Get(rctx, fmt.Sprintf("chat:room:invite:code:%s", cric.Code)).Result()
+
+	if err != nil {
+		return err
+	}
+
+	chatRoomID, err := strconv.ParseUint(val, 10, 22)
+
+	if err != nil {
+		return err
+	}
+
+	cric.ChatRoomID = uint(chatRoomID)
+	return nil
 }
