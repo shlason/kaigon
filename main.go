@@ -57,6 +57,7 @@ func main() {
 
 	routes.RegisteAccountRoutes(public, private)
 	routes.RegisteAuthRoutes(public, private)
+	routes.RegisteForumRoutes(public, private)
 	routes.RegisteImageRoutes(private)
 	// TODO: 記得改回 private route
 	routes.RegisteChatRoutes(public)
