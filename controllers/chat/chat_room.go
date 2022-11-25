@@ -1,36 +1,18 @@
 package chat
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
 	"gorm.io/gorm"
 )
-
-type chatRoomMemberResponse struct {
-	AccountUUID         string
-	Name                string
-	Avatar              string
-	Theme               string
-	EnabledNotification bool
-	LastSeenAt          time.Time
-}
-
-type chatRoomInfoResponse struct {
-	ID               uint                     `json:"id"`
-	Type             string                   `json:"type"`
-	MaximumMemberNum int                      `json:"maximumMemberNum"`
-	Emoji            string                   `json:"emoji"`
-	Name             string                   `json:"name"`
-	Avatar           string                   `json:"avatar"`
-	Members          []chatRoomMemberResponse `json:"members"`
-}
-
-type getAllChatRoomResponse []chatRoomInfoResponse
 
 func getAllChatRoomHandler(msg message) {
 	// 使用者所擁有的聊天室列表
@@ -173,34 +155,6 @@ func getAllChatRoomHandler(msg message) {
 	}
 }
 
-type updateChatRoomSettingRequestPayload struct {
-	ChatRoomID uint   `json:"chatRoomId"`
-	Emoji      string `json:"emoji"`
-	Name       string `json:"name"`
-	Avatar     string `json:"avatar"`
-}
-
-func (updateChatRoomSettingRequestPayload) parse(data interface{}) (updateChatRoomSettingRequestPayload, error) {
-	p := updateChatRoomSettingRequestPayload{}
-
-	bytes, err := json.Marshal(data)
-
-	if err != nil {
-		return p, err
-	}
-
-	err = json.Unmarshal(bytes, &p)
-
-	return p, err
-}
-
-type updateChatRoomSettingResponse struct {
-	ChatRoomID uint   `json:"chatRoomId"`
-	Emoji      string `json:"emoji"`
-	Name       string `json:"name"`
-	Avatar     string `json:"avatar"`
-}
-
 func updateChatRoomSettingHandler(clients map[string]client, msg message) {
 	requestPayload, err := updateChatRoomSettingRequestPayload{}.parse(msg.Payload)
 
@@ -277,26 +231,6 @@ func updateChatRoomSettingHandler(clients map[string]client, msg message) {
 	}
 }
 
-type updateChatRoomCustomSettingRequestPayload struct {
-	ChatRoomID          uint   `json:"chatRoomId"`
-	Theme               string `json:"theme"`
-	EnabledNotification string `json:"enabledNotification"`
-}
-
-func (updateChatRoomCustomSettingRequestPayload) parse(data interface{}) (updateChatRoomCustomSettingRequestPayload, error) {
-	p := updateChatRoomCustomSettingRequestPayload{}
-
-	bytes, err := json.Marshal(data)
-
-	if err != nil {
-		return p, err
-	}
-
-	err = json.Unmarshal(bytes, &p)
-
-	return p, err
-}
-
 func updateChatRoomCustomSettingHandler(msg message) {
 	requestPayload, err := updateChatRoomCustomSettingRequestPayload{}.parse(msg.Payload)
 
@@ -340,28 +274,6 @@ func updateChatRoomCustomSettingHandler(msg message) {
 		StatusMessage: controllers.SuccessMessage,
 		Payload:       nil,
 	}
-}
-
-type updateChatRoomLastSeenRequestPayload struct {
-	ChatRoomID uint `json:"chatRoomId"`
-}
-
-func (updateChatRoomLastSeenRequestPayload) parse(data interface{}) (updateChatRoomLastSeenRequestPayload, error) {
-	p := updateChatRoomLastSeenRequestPayload{}
-
-	bytes, err := json.Marshal(data)
-
-	if err != nil {
-		return p, err
-	}
-
-	err = json.Unmarshal(bytes, &p)
-
-	return p, err
-}
-
-type updateChatRoomCustomSettingResponse struct {
-	LastSeenAt time.Time `json:"lastSeenAt"`
 }
 
 func updateChatRoomLastSeenHandler(clients map[string]client, msg message) {
@@ -434,4 +346,158 @@ func updateChatRoomLastSeenHandler(clients map[string]client, msg message) {
 			},
 		}
 	}
+}
+
+func CreateRoom(c *gin.Context) {
+	var requestPayload createRoomRequestPayload
+
+	errResp, err := controllers.BindJSON(c, &requestPayload)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+
+	errResp, isNotValid := requestPayload.check()
+
+	if isNotValid {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+
+	chatRoomModel := models.ChatRoom{
+		Type:   requestPayload.Type,
+		Avatar: requestPayload.Avatar,
+		Name:   requestPayload.Name,
+	}
+
+	result := chatRoomModel.Create()
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseCreateGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
+	})
+}
+
+func GetRoomInviteCode(c *gin.Context) {
+	chatRoomID, err := strconv.ParseUint(c.Param("chatRoomID"), 10, 22)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+
+	chatRoomMemberModel := models.ChatRoomMember{
+		ChatRoomID:  uint(chatRoomID),
+		AccountUUID: authPayload.AccountUUID,
+	}
+	result := chatRoomMemberModel.ReadByChatRoomIDAndAccountUUID()
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusForbidden, controllers.JSONResponse{
+			Code:    controllers.ErrCodeRequestPermissionForbidden,
+			Message: controllers.ErrMessageRequestPermissionForbidden,
+			Data:    nil,
+		})
+		return
+	}
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	ChatRoomInviteCodeModel := models.ChatRoomInviteCode{
+		ChatRoomID: chatRoomMemberModel.ChatRoomID,
+	}
+	err = ChatRoomInviteCodeModel.Create()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisSetNXKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data: getRoomInviteCodeResponse{
+			Code: ChatRoomInviteCodeModel.Code,
+		},
+	})
+}
+
+func UpdateRoomMemberByInviteCode(c *gin.Context) {
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+	inviteCode := c.Param("inviteCode")
+
+	chatRoomInviteCodeModel := models.ChatRoomInviteCode{
+		Code: inviteCode,
+	}
+
+	err := chatRoomInviteCodeModel.Read()
+
+	if errors.Is(err, redis.Nil) {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    errCodeRequestChatRoomInviteCodeExpired,
+			Message: errMessageRequestChatRoomInviteCodeExpired,
+			Data:    nil,
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisGetKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	chatRoomMemberModel := &models.ChatRoomMember{
+		ChatRoomID:  chatRoomInviteCodeModel.ChatRoomID,
+		AccountUUID: authPayload.AccountUUID,
+	}
+	result := chatRoomMemberModel.Create()
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseCreateGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
+	// TODO: websocket broadcast，發送系統訊息到該聊天室，以此來廣播通知該聊天室的所有成員有新成員的加入
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    nil,
+	})
 }
