@@ -62,6 +62,7 @@ func main() {
 	routes.RegisteImageRoutes(private)
 	// TODO: 記得改回 private route
 	routes.RegisteChatRoutes(public)
+	routes.RegisteSearchRoutes(public)
 	routes.RegisteDevelopUtilsRoutes(public)
 
 	if os.Getenv("CODE_RUN_ENV") == "prod" {
