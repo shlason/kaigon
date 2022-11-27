@@ -9,6 +9,8 @@ func RegisteForumRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	publicR.GET("/forums")
 	// Create new forum
 	privateR.POST("/forums")
+	// Get forum info
+	publicR.GET("/forums/:forumID")
 	// Update forum info
 	privateR.PATCH("/forums/:forumID")
 
