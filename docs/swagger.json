@@ -1863,6 +1863,54 @@
                 }
             }
         },
+        "/chat/ws/cmd:ping": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "心跳包",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat - websocket"
+                ],
+                "summary": "心跳包",
+                "parameters": [
+                    {
+                        "description": "使用 timestamp 以此表示個別 message 的辨識 id",
+                        "name": "seq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "該 websocket 的操作 [ping]",
+                        "name": "cmd",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    }
+                }
+            }
+        },
         "/chat/ws/cmd:send_chat_message": {
             "get": {
                 "security": [

@@ -1459,6 +1459,36 @@ paths:
       summary: 更新使用者已讀某個聊天室的最後時間
       tags:
       - chat - websocket
+  /chat/ws/cmd:ping:
+    get:
+      consumes:
+      - application/json
+      description: 心跳包
+      parameters:
+      - description: 使用 timestamp 以此表示個別 message 的辨識 id
+        in: body
+        name: seq
+        required: true
+        schema:
+          type: integer
+      - description: 該 websocket 的操作 [ping]
+        in: body
+        name: cmd
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chat.message'
+      security:
+      - ApiKeyAuth: []
+      summary: 心跳包
+      tags:
+      - chat - websocket
   /chat/ws/cmd:send_chat_message:
     get:
       consumes:
