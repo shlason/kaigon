@@ -167,19 +167,19 @@ func getAllChatRoomHandler(msg message) {
 	}
 }
 
-// @Summary     更新特定聊天室的設定 (共通 - 聊天室成員皆可看到)
-// @Description 更新特定聊天室的設定 (共通 - 聊天室成員皆可看到)
+// @Summary     更新特定聊天室的設定 (共通 - 聊天室成員皆套用)
+// @Description 更新特定聊天室的設定 (共通 - 聊天室成員皆套用)
 // @Tags        chat - websocket
 // @Accept      json
 // @Produce     json
 // @Security    ApiKeyAuth
 // @Param       seq     body     uint                                true "使用 timestamp 以此表示個別 message 的辨識 id"
-// @Param       cmd     body     string                              true "該 websocket 的操作 [get_all_chat_room]"
+// @Param       cmd     body     string                              true "該 websocket 的操作 [update_chat_room_setting]"
 // @Param       payload body     updateChatRoomSettingRequestPayload true "payload"
 // @Success     200     {object} message{payload=updateChatRoomSettingResponse}
 // @Failure     400     {object} message
 // @Failure     500     {object} message
-// @Router      /chat/ws/cmd:get_all_chat_room [get]
+// @Router      /chat/ws/cmd:update_chat_room_setting [get]
 func updateChatRoomSettingHandler(clients map[string]client, msg message) {
 	requestPayload, err := updateChatRoomSettingRequestPayload{}.parse(msg.Payload)
 
@@ -399,6 +399,19 @@ func updateChatRoomLastSeenHandler(clients map[string]client, msg message) {
 	}
 }
 
+// @Summary     建立聊天室
+// @Description 建立聊天室
+// @Tags        chat
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       type   body     string true "聊天室類型 (personal or group)"
+// @Param       name   body     string true "Chat Room Name"
+// @Param       avatar body     string true "Chat Room Avatar"
+// @Success     200    {object} controllers.JSONResponse
+// @Failure     400    {object} controllers.JSONResponse
+// @Failure     500    {object} controllers.JSONResponse
+// @Router      /chat/room [post]
 func CreateRoom(c *gin.Context) {
 	var requestPayload createRoomRequestPayload
 
@@ -440,6 +453,17 @@ func CreateRoom(c *gin.Context) {
 	})
 }
 
+// @Summary     取得聊天室邀請碼
+// @Description 取得聊天室邀請碼
+// @Tags        chat
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       chatRoomID path     uint true "Chat Room ID"
+// @Success     200        {object} controllers.JSONResponse{data=getRoomInviteCodeResponse}
+// @Failure     403        {object} controllers.JSONResponse
+// @Failure     500        {object} controllers.JSONResponse
+// @Router      /chat/room/:chatRoomID/invite/code [get]
 func GetRoomInviteCode(c *gin.Context) {
 	chatRoomID, err := strconv.ParseUint(c.Param("chatRoomID"), 10, 22)
 
@@ -501,6 +525,18 @@ func GetRoomInviteCode(c *gin.Context) {
 	})
 }
 
+// @Summary     藉由邀請碼加入聊天室
+// @Description 藉由邀請碼加入聊天室
+// @Tags        chat
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       chatRoomID path     uint   true "Chat Room ID"
+// @Param       inviteCode path     string true "Chat Room Invite Code"
+// @Success     200        {object} controllers.JSONResponse
+// @Failure     400        {object} controllers.JSONResponse
+// @Failure     500        {object} controllers.JSONResponse
+// @Router      /chat/room/:chatRoomID/invite/code/:inviteCode [patch]
 func UpdateRoomMemberByInviteCode(c *gin.Context) {
 	authPayload := c.MustGet("authPayload").(*models.JWTToken)
 	inviteCode := c.Param("inviteCode")
@@ -545,7 +581,6 @@ func UpdateRoomMemberByInviteCode(c *gin.Context) {
 	}
 
 	// TODO: websocket broadcast，發送系統訊息到該聊天室，以此來廣播通知該聊天室的所有成員有新成員的加入
-
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,

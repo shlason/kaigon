@@ -174,6 +174,11 @@ definitions:
       chatRoomId:
         type: integer
     type: object
+  chat.getRoomInviteCodeResponse:
+    properties:
+      code:
+        type: string
+    type: object
   chat.message:
     properties:
       cmd:
@@ -1174,6 +1179,122 @@ paths:
       summary: 取得 authToken
       tags:
       - auth
+  /chat/room:
+    post:
+      consumes:
+      - application/json
+      description: 建立聊天室
+      parameters:
+      - description: 聊天室類型 (personal or group)
+        in: body
+        name: type
+        required: true
+        schema:
+          type: string
+      - description: Chat Room Name
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      - description: Chat Room Avatar
+        in: body
+        name: avatar
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 建立聊天室
+      tags:
+      - chat
+  /chat/room/:chatRoomID/invite/code:
+    get:
+      consumes:
+      - application/json
+      description: 取得聊天室邀請碼
+      parameters:
+      - description: Chat Room ID
+        in: path
+        name: chatRoomID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controllers.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/chat.getRoomInviteCodeResponse'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 取得聊天室邀請碼
+      tags:
+      - chat
+  /chat/room/:chatRoomID/invite/code/:inviteCode:
+    patch:
+      consumes:
+      - application/json
+      description: 藉由邀請碼加入聊天室
+      parameters:
+      - description: Chat Room ID
+        in: path
+        name: chatRoomID
+        required: true
+        type: integer
+      - description: Chat Room Invite Code
+        in: path
+        name: inviteCode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 藉由邀請碼加入聊天室
+      tags:
+      - chat
   /chat/ws:
     get:
       consumes:
@@ -1199,7 +1320,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: 更新特定聊天室的設定 (共通 - 聊天室成員皆可看到)
+      description: 取得所有聊天室列表
       parameters:
       - description: 使用 timestamp 以此表示個別 message 的辨識 id
         in: body
@@ -1213,12 +1334,12 @@ paths:
         required: true
         schema:
           type: string
-      - description: payload
+      - description: 'type: text'
         in: body
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/chat.updateChatRoomSettingRequestPayload'
+          $ref: '#/definitions/chat.sendChatMessageRequestPayload'
       produces:
       - application/json
       responses:
@@ -1229,19 +1350,17 @@ paths:
             - $ref: '#/definitions/chat.message'
             - properties:
                 payload:
-                  $ref: '#/definitions/chat.updateChatRoomSettingResponse'
+                  items:
+                    $ref: '#/definitions/chat.chatRoomInfoResponse'
+                  type: array
               type: object
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/chat.message'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/chat.message'
       security:
       - ApiKeyAuth: []
-      summary: 更新特定聊天室的設定 (共通 - 聊天室成員皆可看到)
+      summary: 取得所有聊天室列表
       tags:
       - chat - websocket
   /chat/ws/cmd:get_chat_message:
@@ -1427,6 +1546,55 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 更新特定聊天室的設定 (私人 - 僅自己有效)
+      tags:
+      - chat - websocket
+  /chat/ws/cmd:update_chat_room_setting:
+    get:
+      consumes:
+      - application/json
+      description: 更新特定聊天室的設定 (共通 - 聊天室成員皆套用)
+      parameters:
+      - description: 使用 timestamp 以此表示個別 message 的辨識 id
+        in: body
+        name: seq
+        required: true
+        schema:
+          type: integer
+      - description: 該 websocket 的操作 [update_chat_room_setting]
+        in: body
+        name: cmd
+        required: true
+        schema:
+          type: string
+      - description: payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/chat.updateChatRoomSettingRequestPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/chat.message'
+            - properties:
+                payload:
+                  $ref: '#/definitions/chat.updateChatRoomSettingResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/chat.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/chat.message'
+      security:
+      - ApiKeyAuth: []
+      summary: 更新特定聊天室的設定 (共通 - 聊天室成員皆套用)
       tags:
       - chat - websocket
   /develop/utils/account/delete:
