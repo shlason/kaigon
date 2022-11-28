@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/shlason/kaigon/controllers"
 )
 
 var upgrader = websocket.Upgrader{
@@ -14,12 +15,23 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// @Summary     建立 Chat Websocket 連線 (HTTP)
+// @Description HTTP GET 方法，在處理請求時會切換協議由 HTTP -> Websocket
+// @Tags        chat
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Success     200 {object} controllers.JSONResponse
+// @Failure     500 {object} controllers.JSONResponse
+// @Router      /chat/ws [get]
 func Connect(c *gin.Context) {
 	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": err,
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
 		})
 		return
 	}
