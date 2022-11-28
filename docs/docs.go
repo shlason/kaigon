@@ -1413,6 +1413,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/chat/ws": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "HTTP GET 方法，在處理請求時會切換協議由 HTTP -\u003e Websocket",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "建立 Chat Websocket 連線 (HTTP)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/develop/utils/account/delete": {
             "get": {
                 "description": "刪除所有開發者的所有帳號資料 (直接在網頁爆打這支就可以刪掉資料了)",

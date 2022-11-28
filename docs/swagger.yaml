@@ -1044,6 +1044,27 @@ paths:
       summary: 取得 authToken
       tags:
       - auth
+  /chat/ws:
+    get:
+      consumes:
+      - application/json
+      description: HTTP GET 方法，在處理請求時會切換協議由 HTTP -> Websocket
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 建立 Chat Websocket 連線 (HTTP)
+      tags:
+      - chat
   /develop/utils/account/delete:
     get:
       consumes:
