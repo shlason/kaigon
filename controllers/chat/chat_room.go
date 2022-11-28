@@ -14,6 +14,18 @@ import (
 	"gorm.io/gorm"
 )
 
+// @Summary     取得所有聊天室列表
+// @Description 取得所有聊天室列表
+// @Tags        chat - websocket
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       seq     body     uint                          true "使用 timestamp 以此表示個別 message 的辨識 id"
+// @Param       cmd     body     string                        true "該 websocket 的操作 [get_all_chat_room]"
+// @Param       payload body     sendChatMessageRequestPayload true "type: text"
+// @Success     200     {object} message{payload=getAllChatRoomResponse}
+// @Failure     400     {object} message
+// @Router      /chat/ws/cmd:get_all_chat_room [get]
 func getAllChatRoomHandler(msg message) {
 	// 使用者所擁有的聊天室列表
 	var availableChatRooms []models.ChatRoomMember
@@ -155,6 +167,19 @@ func getAllChatRoomHandler(msg message) {
 	}
 }
 
+// @Summary     更新特定聊天室的設定 (共通 - 聊天室成員皆可看到)
+// @Description 更新特定聊天室的設定 (共通 - 聊天室成員皆可看到)
+// @Tags        chat - websocket
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       seq     body     uint                                true "使用 timestamp 以此表示個別 message 的辨識 id"
+// @Param       cmd     body     string                              true "該 websocket 的操作 [get_all_chat_room]"
+// @Param       payload body     updateChatRoomSettingRequestPayload true "payload"
+// @Success     200     {object} message{payload=updateChatRoomSettingResponse}
+// @Failure     400     {object} message
+// @Failure     500     {object} message
+// @Router      /chat/ws/cmd:get_all_chat_room [get]
 func updateChatRoomSettingHandler(clients map[string]client, msg message) {
 	requestPayload, err := updateChatRoomSettingRequestPayload{}.parse(msg.Payload)
 
@@ -231,6 +256,19 @@ func updateChatRoomSettingHandler(clients map[string]client, msg message) {
 	}
 }
 
+// @Summary     更新特定聊天室的設定 (私人 - 僅自己有效)
+// @Description 更新特定聊天室的設定 (私人 - 僅自己有效)
+// @Tags        chat - websocket
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       seq     body     uint                                      true "使用 timestamp 以此表示個別 message 的辨識 id"
+// @Param       cmd     body     string                                    true "該 websocket 的操作 [update_chat_room_custom_setting]"
+// @Param       payload body     updateChatRoomCustomSettingRequestPayload true "payload"
+// @Success     200     {object} message
+// @Failure     400     {object} message
+// @Failure     500     {object} message
+// @Router      /chat/ws/cmd:update_chat_room_custom_setting [get]
 func updateChatRoomCustomSettingHandler(msg message) {
 	requestPayload, err := updateChatRoomCustomSettingRequestPayload{}.parse(msg.Payload)
 
@@ -276,6 +314,19 @@ func updateChatRoomCustomSettingHandler(msg message) {
 	}
 }
 
+// @Summary     更新使用者已讀某個聊天室的最後時間
+// @Description 更新使用者已讀某個聊天室的最後時間
+// @Tags        chat - websocket
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       seq     body     uint                                 true "使用 timestamp 以此表示個別 message 的辨識 id"
+// @Param       cmd     body     string                               true "該 websocket 的操作 [have_read]"
+// @Param       payload body     updateChatRoomLastSeenRequestPayload true "payload"
+// @Success     200     {object} message{payload=updateChatRoomCustomSettingResponse}
+// @Failure     400     {object} message
+// @Failure     500     {object} message
+// @Router      /chat/ws/cmd:have_read [get]
 func updateChatRoomLastSeenHandler(clients map[string]client, msg message) {
 	requestPayload, err := updateChatRoomLastSeenRequestPayload{}.parse(msg.Payload)
 

@@ -133,6 +133,40 @@ definitions:
       type:
         type: string
     type: object
+  chat.chatRoomInfoResponse:
+    properties:
+      avatar:
+        type: string
+      emoji:
+        type: string
+      id:
+        type: integer
+      maximumMemberNum:
+        type: integer
+      members:
+        items:
+          $ref: '#/definitions/chat.chatRoomMemberResponse'
+        type: array
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  chat.chatRoomMemberResponse:
+    properties:
+      accountUUID:
+        type: string
+      avatar:
+        type: string
+      enabledNotification:
+        type: boolean
+      lastSeenAt:
+        type: string
+      name:
+        type: string
+      theme:
+        type: string
+    type: object
   chat.client:
     type: object
   chat.getChatMessageRequestPayload:
@@ -171,6 +205,47 @@ definitions:
       to:
         type: integer
       type:
+        type: string
+    type: object
+  chat.updateChatRoomCustomSettingRequestPayload:
+    properties:
+      chatRoomId:
+        type: integer
+      enabledNotification:
+        type: boolean
+      theme:
+        type: string
+    type: object
+  chat.updateChatRoomCustomSettingResponse:
+    properties:
+      lastSeenAt:
+        type: string
+    type: object
+  chat.updateChatRoomLastSeenRequestPayload:
+    properties:
+      chatRoomId:
+        type: integer
+    type: object
+  chat.updateChatRoomSettingRequestPayload:
+    properties:
+      avatar:
+        type: string
+      chatRoomId:
+        type: integer
+      emoji:
+        type: string
+      name:
+        type: string
+    type: object
+  chat.updateChatRoomSettingResponse:
+    properties:
+      avatar:
+        type: string
+      chatRoomId:
+        type: integer
+      emoji:
+        type: string
+      name:
         type: string
     type: object
   controllers.JSONResponse:
@@ -1120,6 +1195,55 @@ paths:
       summary: 建立 Chat Websocket 連線 (HTTP)
       tags:
       - chat
+  /chat/ws/cmd:get_all_chat_room:
+    get:
+      consumes:
+      - application/json
+      description: 更新特定聊天室的設定 (共通 - 聊天室成員皆可看到)
+      parameters:
+      - description: 使用 timestamp 以此表示個別 message 的辨識 id
+        in: body
+        name: seq
+        required: true
+        schema:
+          type: integer
+      - description: 該 websocket 的操作 [get_all_chat_room]
+        in: body
+        name: cmd
+        required: true
+        schema:
+          type: string
+      - description: payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/chat.updateChatRoomSettingRequestPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/chat.message'
+            - properties:
+                payload:
+                  $ref: '#/definitions/chat.updateChatRoomSettingResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/chat.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/chat.message'
+      security:
+      - ApiKeyAuth: []
+      summary: 更新特定聊天室的設定 (共通 - 聊天室成員皆可看到)
+      tags:
+      - chat - websocket
   /chat/ws/cmd:get_chat_message:
     get:
       consumes:
@@ -1167,6 +1291,55 @@ paths:
       summary: 取得某聊天室中的所有訊息
       tags:
       - chat - websocket
+  /chat/ws/cmd:have_read:
+    get:
+      consumes:
+      - application/json
+      description: 更新使用者已讀某個聊天室的最後時間
+      parameters:
+      - description: 使用 timestamp 以此表示個別 message 的辨識 id
+        in: body
+        name: seq
+        required: true
+        schema:
+          type: integer
+      - description: 該 websocket 的操作 [have_read]
+        in: body
+        name: cmd
+        required: true
+        schema:
+          type: string
+      - description: payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/chat.updateChatRoomLastSeenRequestPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/chat.message'
+            - properties:
+                payload:
+                  $ref: '#/definitions/chat.updateChatRoomCustomSettingResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/chat.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/chat.message'
+      security:
+      - ApiKeyAuth: []
+      summary: 更新使用者已讀某個聊天室的最後時間
+      tags:
+      - chat - websocket
   /chat/ws/cmd:send_chat_message:
     get:
       consumes:
@@ -1210,6 +1383,50 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 傳送聊天訊息
+      tags:
+      - chat - websocket
+  /chat/ws/cmd:update_chat_room_custom_setting:
+    get:
+      consumes:
+      - application/json
+      description: 更新特定聊天室的設定 (私人 - 僅自己有效)
+      parameters:
+      - description: 使用 timestamp 以此表示個別 message 的辨識 id
+        in: body
+        name: seq
+        required: true
+        schema:
+          type: integer
+      - description: 該 websocket 的操作 [update_chat_room_custom_setting]
+        in: body
+        name: cmd
+        required: true
+        schema:
+          type: string
+      - description: payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/chat.updateChatRoomCustomSettingRequestPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chat.message'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/chat.message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/chat.message'
+      security:
+      - ApiKeyAuth: []
+      summary: 更新特定聊天室的設定 (私人 - 僅自己有效)
       tags:
       - chat - websocket
   /develop/utils/account/delete:
