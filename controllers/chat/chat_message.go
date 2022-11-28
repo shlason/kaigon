@@ -10,6 +10,18 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// @Summary     傳送聊天訊息
+// @Description 傳送聊天訊息
+// @Tags        chat - websocket
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       seq     body     uint                          true "使用 timestamp 以此表示個別 message 的辨識 id"
+// @Param       cmd     body     string                        true "該 websocket 的操作 [send_chat_message]"
+// @Param       payload body     sendChatMessageRequestPayload true "type: text"
+// @Success     200     {object} message{payload=chatMessageResponse}
+// @Failure     400     {object} message
+// @Router      /chat/ws/cmd:send_chat_message [get]
 func sendChatMessageHandler(clients map[string]client, msg message) {
 	*msg.Self.Channel <- message{
 		Seq:           msg.Seq,
@@ -21,6 +33,7 @@ func sendChatMessageHandler(clients map[string]client, msg message) {
 
 	sendChatMsgReqPayload, err := sendChatMessageRequestPayload{}.parse(msg.Payload)
 
+	// TODO: error handle
 	if err != nil {
 		fmt.Println("chatMsgPayload.Parse got error")
 		fmt.Println(err)
@@ -92,9 +105,22 @@ func sendChatMessageHandler(clients map[string]client, msg message) {
 	}
 }
 
+// @Summary     取得某聊天室中的所有訊息
+// @Description 取得某聊天室中的所有訊息
+// @Tags        chat - websocket
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Param       seq     body     uint                         true "使用 timestamp 以此表示個別 message 的辨識 id"
+// @Param       cmd     body     string                       true "該 websocket 的操作 [get_chat_message]"
+// @Param       payload body     getChatMessageRequestPayload true "Chat Room ID"
+// @Success     200     {object} message{payload=chatMessagesResponse}
+// @Failure     400     {object} message
+// @Router      /chat/ws/cmd:get_chat_message [get]
 func getChatMessage(msg message) {
 	getChatMsgReqPayload, err := getChatMessageRequestPayload{}.Parse(msg.Payload)
 
+	// TODO: error handle
 	if err != nil {
 		fmt.Println("getChatMessageRequestPayload.Parse got error")
 		fmt.Println(err)
@@ -106,6 +132,7 @@ func getChatMessage(msg message) {
 	// TODO: pagination
 	chateMessages, err := models.ChatMessage{}.FindByTo(getChatMsgReqPayload.ChatRoomID)
 
+	// TODO: error handle
 	if err != nil {
 		fmt.Println("ChatMessage{}.FindByTo got error")
 		fmt.Println(err)

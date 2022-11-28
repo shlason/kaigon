@@ -1440,6 +1440,159 @@
                 }
             }
         },
+        "/chat/ws/cmd:get_chat_message": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "取得某聊天室中的所有訊息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat - websocket"
+                ],
+                "summary": "取得某聊天室中的所有訊息",
+                "parameters": [
+                    {
+                        "description": "使用 timestamp 以此表示個別 message 的辨識 id",
+                        "name": "seq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "該 websocket 的操作 [get_chat_message]",
+                        "name": "cmd",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Chat Room ID",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chat.getChatMessageRequestPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/chat.message"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "payload": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/chat.chatMessageResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/ws/cmd:send_chat_message": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "傳送聊天訊息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat - websocket"
+                ],
+                "summary": "傳送聊天訊息",
+                "parameters": [
+                    {
+                        "description": "使用 timestamp 以此表示個別 message 的辨識 id",
+                        "name": "seq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "該 websocket 的操作 [send_chat_message]",
+                        "name": "cmd",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "type: text",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chat.sendChatMessageRequestPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/chat.message"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "payload": {
+                                            "$ref": "#/definitions/chat.chatMessageResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    }
+                }
+            }
+        },
         "/develop/utils/account/delete": {
             "get": {
                 "description": "刪除所有開發者的所有帳號資料 (直接在網頁爆打這支就可以刪掉資料了)",
@@ -1720,6 +1873,90 @@
             "type": "object",
             "properties": {
                 "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "chat.chatMessageResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "chat.client": {
+            "type": "object"
+        },
+        "chat.getChatMessageRequestPayload": {
+            "type": "object",
+            "properties": {
+                "chatRoomId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "chat.message": {
+            "type": "object",
+            "properties": {
+                "cmd": {
+                    "type": "string"
+                },
+                "customCode": {
+                    "type": "string"
+                },
+                "payload": {},
+                "self": {
+                    "$ref": "#/definitions/chat.selfInfo"
+                },
+                "seq": {
+                    "type": "integer"
+                },
+                "statusCode": {
+                    "type": "integer"
+                },
+                "statusMessage": {}
+            }
+        },
+        "chat.selfInfo": {
+            "type": "object",
+            "properties": {
+                "accountUUID": {
+                    "type": "string"
+                },
+                "channel": {
+                    "$ref": "#/definitions/chat.client"
+                }
+            }
+        },
+        "chat.sendChatMessageRequestPayload": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "integer"
+                },
+                "type": {
                     "type": "string"
                 }
             }

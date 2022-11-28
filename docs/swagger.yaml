@@ -118,6 +118,61 @@ definitions:
       url:
         type: string
     type: object
+  chat.chatMessageResponse:
+    properties:
+      content:
+        type: string
+      from:
+        type: string
+      id:
+        type: string
+      timestamp:
+        type: string
+      to:
+        type: integer
+      type:
+        type: string
+    type: object
+  chat.client:
+    type: object
+  chat.getChatMessageRequestPayload:
+    properties:
+      chatRoomId:
+        type: integer
+    type: object
+  chat.message:
+    properties:
+      cmd:
+        type: string
+      customCode:
+        type: string
+      payload: {}
+      self:
+        $ref: '#/definitions/chat.selfInfo'
+      seq:
+        type: integer
+      statusCode:
+        type: integer
+      statusMessage: {}
+    type: object
+  chat.selfInfo:
+    properties:
+      accountUUID:
+        type: string
+      channel:
+        $ref: '#/definitions/chat.client'
+    type: object
+  chat.sendChatMessageRequestPayload:
+    properties:
+      content:
+        type: string
+      from:
+        type: string
+      to:
+        type: integer
+      type:
+        type: string
+    type: object
   controllers.JSONResponse:
     properties:
       code:
@@ -1065,6 +1120,98 @@ paths:
       summary: 建立 Chat Websocket 連線 (HTTP)
       tags:
       - chat
+  /chat/ws/cmd:get_chat_message:
+    get:
+      consumes:
+      - application/json
+      description: 取得某聊天室中的所有訊息
+      parameters:
+      - description: 使用 timestamp 以此表示個別 message 的辨識 id
+        in: body
+        name: seq
+        required: true
+        schema:
+          type: integer
+      - description: 該 websocket 的操作 [get_chat_message]
+        in: body
+        name: cmd
+        required: true
+        schema:
+          type: string
+      - description: Chat Room ID
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/chat.getChatMessageRequestPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/chat.message'
+            - properties:
+                payload:
+                  items:
+                    $ref: '#/definitions/chat.chatMessageResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/chat.message'
+      security:
+      - ApiKeyAuth: []
+      summary: 取得某聊天室中的所有訊息
+      tags:
+      - chat - websocket
+  /chat/ws/cmd:send_chat_message:
+    get:
+      consumes:
+      - application/json
+      description: 傳送聊天訊息
+      parameters:
+      - description: 使用 timestamp 以此表示個別 message 的辨識 id
+        in: body
+        name: seq
+        required: true
+        schema:
+          type: integer
+      - description: 該 websocket 的操作 [send_chat_message]
+        in: body
+        name: cmd
+        required: true
+        schema:
+          type: string
+      - description: 'type: text'
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/chat.sendChatMessageRequestPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/chat.message'
+            - properties:
+                payload:
+                  $ref: '#/definitions/chat.chatMessageResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/chat.message'
+      security:
+      - ApiKeyAuth: []
+      summary: 傳送聊天訊息
+      tags:
+      - chat - websocket
   /develop/utils/account/delete:
     get:
       consumes:

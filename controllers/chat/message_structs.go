@@ -30,7 +30,7 @@ type selfInfo struct {
 
 type message struct {
 	Self          selfInfo    `json:",omitempty"`
-	Seq           int         `json:"seq"`
+	Seq           uint        `json:"seq"`
 	Cmd           string      `json:"cmd"`
 	CustomCode    string      `json:"customCode"`
 	StatusCode    int         `json:"statusCode"`
