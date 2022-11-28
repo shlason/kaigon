@@ -1406,6 +1406,736 @@
                 }
             }
         },
+        "/chat/room": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "建立聊天室",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "建立聊天室",
+                "parameters": [
+                    {
+                        "description": "聊天室類型 (personal or group)",
+                        "name": "type",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Chat Room Name",
+                        "name": "name",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Chat Room Avatar",
+                        "name": "avatar",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/room/:chatRoomID/invite/code": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "取得聊天室邀請碼",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "取得聊天室邀請碼",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Chat Room ID",
+                        "name": "chatRoomID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JSONResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/chat.getRoomInviteCodeResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/room/:chatRoomID/invite/code/:inviteCode": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "藉由邀請碼加入聊天室",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "藉由邀請碼加入聊天室",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Chat Room ID",
+                        "name": "chatRoomID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chat Room Invite Code",
+                        "name": "inviteCode",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/ws": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "HTTP GET 方法，在處理請求時會切換協議由 HTTP -\u003e Websocket",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "建立 Chat Websocket 連線 (HTTP)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/ws/cmd:get_all_chat_room": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "取得所有聊天室列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat - websocket"
+                ],
+                "summary": "取得所有聊天室列表",
+                "parameters": [
+                    {
+                        "description": "使用 timestamp 以此表示個別 message 的辨識 id",
+                        "name": "seq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "該 websocket 的操作 [get_all_chat_room]",
+                        "name": "cmd",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "type: text",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chat.sendChatMessageRequestPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/chat.message"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "payload": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/chat.chatRoomInfoResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/ws/cmd:get_chat_message": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "取得某聊天室中的所有訊息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat - websocket"
+                ],
+                "summary": "取得某聊天室中的所有訊息",
+                "parameters": [
+                    {
+                        "description": "使用 timestamp 以此表示個別 message 的辨識 id",
+                        "name": "seq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "該 websocket 的操作 [get_chat_message]",
+                        "name": "cmd",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Chat Room ID",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chat.getChatMessageRequestPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/chat.message"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "payload": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/chat.chatMessageResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/ws/cmd:have_read": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "更新使用者已讀某個聊天室的最後時間",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat - websocket"
+                ],
+                "summary": "更新使用者已讀某個聊天室的最後時間",
+                "parameters": [
+                    {
+                        "description": "使用 timestamp 以此表示個別 message 的辨識 id",
+                        "name": "seq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "該 websocket 的操作 [have_read]",
+                        "name": "cmd",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chat.updateChatRoomLastSeenRequestPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/chat.message"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "payload": {
+                                            "$ref": "#/definitions/chat.updateChatRoomCustomSettingResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/ws/cmd:ping": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "心跳包",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat - websocket"
+                ],
+                "summary": "心跳包",
+                "parameters": [
+                    {
+                        "description": "使用 timestamp 以此表示個別 message 的辨識 id",
+                        "name": "seq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "該 websocket 的操作 [ping]",
+                        "name": "cmd",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/ws/cmd:send_chat_message": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "傳送聊天訊息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat - websocket"
+                ],
+                "summary": "傳送聊天訊息",
+                "parameters": [
+                    {
+                        "description": "使用 timestamp 以此表示個別 message 的辨識 id",
+                        "name": "seq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "該 websocket 的操作 [send_chat_message]",
+                        "name": "cmd",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "type: text",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chat.sendChatMessageRequestPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/chat.message"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "payload": {
+                                            "$ref": "#/definitions/chat.chatMessageResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/ws/cmd:update_chat_room_custom_setting": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "更新特定聊天室的設定 (私人 - 僅自己有效)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat - websocket"
+                ],
+                "summary": "更新特定聊天室的設定 (私人 - 僅自己有效)",
+                "parameters": [
+                    {
+                        "description": "使用 timestamp 以此表示個別 message 的辨識 id",
+                        "name": "seq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "該 websocket 的操作 [update_chat_room_custom_setting]",
+                        "name": "cmd",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chat.updateChatRoomCustomSettingRequestPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/ws/cmd:update_chat_room_setting": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "更新特定聊天室的設定 (共通 - 聊天室成員皆套用)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "chat - websocket"
+                ],
+                "summary": "更新特定聊天室的設定 (共通 - 聊天室成員皆套用)",
+                "parameters": [
+                    {
+                        "description": "使用 timestamp 以此表示個別 message 的辨識 id",
+                        "name": "seq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "該 websocket 的操作 [update_chat_room_setting]",
+                        "name": "cmd",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chat.updateChatRoomSettingRequestPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/chat.message"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "payload": {
+                                            "$ref": "#/definitions/chat.updateChatRoomSettingResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/chat.message"
+                        }
+                    }
+                }
+            }
+        },
         "/develop/utils/account/delete": {
             "get": {
                 "description": "刪除所有開發者的所有帳號資料 (直接在網頁爆打這支就可以刪掉資料了)",
@@ -1686,6 +2416,214 @@
             "type": "object",
             "properties": {
                 "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "chat.chatMessageResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "chat.chatRoomInfoResponse": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "emoji": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "maximumMemberNum": {
+                    "type": "integer"
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/chat.chatRoomMemberResponse"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "chat.chatRoomMemberResponse": {
+            "type": "object",
+            "properties": {
+                "accountUUID": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "enabledNotification": {
+                    "type": "boolean"
+                },
+                "lastSeenAt": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "theme": {
+                    "type": "string"
+                }
+            }
+        },
+        "chat.client": {
+            "type": "object"
+        },
+        "chat.getChatMessageRequestPayload": {
+            "type": "object",
+            "properties": {
+                "chatRoomId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "chat.getRoomInviteCodeResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                }
+            }
+        },
+        "chat.message": {
+            "type": "object",
+            "properties": {
+                "cmd": {
+                    "type": "string"
+                },
+                "customCode": {
+                    "type": "string"
+                },
+                "payload": {},
+                "self": {
+                    "$ref": "#/definitions/chat.selfInfo"
+                },
+                "seq": {
+                    "type": "integer"
+                },
+                "statusCode": {
+                    "type": "integer"
+                },
+                "statusMessage": {}
+            }
+        },
+        "chat.selfInfo": {
+            "type": "object",
+            "properties": {
+                "accountUUID": {
+                    "type": "string"
+                },
+                "channel": {
+                    "$ref": "#/definitions/chat.client"
+                }
+            }
+        },
+        "chat.sendChatMessageRequestPayload": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "chat.updateChatRoomCustomSettingRequestPayload": {
+            "type": "object",
+            "properties": {
+                "chatRoomId": {
+                    "type": "integer"
+                },
+                "enabledNotification": {
+                    "type": "boolean"
+                },
+                "theme": {
+                    "type": "string"
+                }
+            }
+        },
+        "chat.updateChatRoomCustomSettingResponse": {
+            "type": "object",
+            "properties": {
+                "lastSeenAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "chat.updateChatRoomLastSeenRequestPayload": {
+            "type": "object",
+            "properties": {
+                "chatRoomId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "chat.updateChatRoomSettingRequestPayload": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "chatRoomId": {
+                    "type": "integer"
+                },
+                "emoji": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "chat.updateChatRoomSettingResponse": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "chatRoomId": {
+                    "type": "integer"
+                },
+                "emoji": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

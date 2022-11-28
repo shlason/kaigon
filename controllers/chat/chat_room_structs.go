@@ -59,7 +59,7 @@ type updateChatRoomSettingResponse struct {
 type updateChatRoomCustomSettingRequestPayload struct {
 	ChatRoomID          uint   `json:"chatRoomId"`
 	Theme               string `json:"theme"`
-	EnabledNotification string `json:"enabledNotification"`
+	EnabledNotification bool   `json:"enabledNotification"`
 }
 
 func (updateChatRoomCustomSettingRequestPayload) parse(data interface{}) (updateChatRoomCustomSettingRequestPayload, error) {
