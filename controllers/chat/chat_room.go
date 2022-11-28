@@ -446,6 +446,24 @@ func CreateRoom(c *gin.Context) {
 		return
 	}
 
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+
+	chatRoomMemberModel := models.ChatRoomMember{
+		ChatRoomID:  chatRoomModel.ID,
+		AccountUUID: authPayload.AccountUUID,
+		LastSeenAt:  time.Now().UTC(),
+	}
+	result = chatRoomMemberModel.Create()
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseCreateGotError,
+			Message: result.Error,
+			Data:    nil,
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
