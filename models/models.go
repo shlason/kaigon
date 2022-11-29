@@ -15,6 +15,7 @@ import (
 
 type mongoDBCollections struct {
 	ChatMessages *mongo.Collection
+	Forums       *mongo.Collection
 }
 
 var db *gorm.DB
@@ -64,6 +65,7 @@ func init() {
 	}
 
 	chatMessagesColl := md.Database(configs.Database.Name).Collection(chatMessagesCollectionName)
+	forumsColl := md.Database(configs.Database.Name).Collection(forumsCollectionName)
 
 	// Redis
 	rd := redis.NewClient(&redis.Options{
@@ -76,5 +78,6 @@ func init() {
 	rdb = rd
 	mdb = mongoDBCollections{
 		ChatMessages: chatMessagesColl,
+		Forums:       forumsColl,
 	}
 }
