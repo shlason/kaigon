@@ -3,9 +3,11 @@ package models
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/shlason/kaigon/configs"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -16,11 +18,20 @@ import (
 type mongoDBCollections struct {
 	ChatMessages *mongo.Collection
 	Forums       *mongo.Collection
+	Posts        *mongo.Collection
+	Reactions    *mongo.Collection
+}
+
+type mongoDBModel struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty"`
+	CreatedAt time.Time          `bson:"created_at"`
+	UpdatedAt time.Time          `bson:"updated_at"`
+	DeletedAt time.Time          `bson:"deleted_at"`
 }
 
 var db *gorm.DB
 var rdb *redis.Client
-var mdb mongoDBCollections = mongoDBCollections{}
+var mdb mongoDBCollections
 
 var rctx context.Context = context.Background()
 
@@ -66,6 +77,8 @@ func init() {
 
 	chatMessagesColl := md.Database(configs.Database.Name).Collection(chatMessagesCollectionName)
 	forumsColl := md.Database(configs.Database.Name).Collection(forumsCollectionName)
+	postsColl := md.Database(configs.Database.Name).Collection(postsCollectionName)
+	reactionsColl := md.Database(configs.Database.Name).Collection(reactionsCollectionName)
 
 	// Redis
 	rd := redis.NewClient(&redis.Options{
@@ -79,5 +92,7 @@ func init() {
 	mdb = mongoDBCollections{
 		ChatMessages: chatMessagesColl,
 		Forums:       forumsColl,
+		Posts:        postsColl,
+		Reactions:    reactionsColl,
 	}
 }
