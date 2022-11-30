@@ -22,6 +22,7 @@ type mongoDBCollections struct {
 	PostReactions *mongo.Collection
 	PostFavorite  *mongo.Collection
 	PostComments  *mongo.Collection
+	Topics        *mongo.Collection
 }
 
 type mongoDBModel struct {
@@ -83,6 +84,7 @@ func init() {
 	postReactionsColl := md.Database(configs.Database.Name).Collection(postReactionsCollectionName)
 	postFavoriteColl := md.Database(configs.Database.Name).Collection(postFavoriteCollectionName)
 	postCommentsColl := md.Database(configs.Database.Name).Collection(postCommentsCollectionName)
+	topicsColl := md.Database(configs.Database.Name).Collection(topicsCollectionName)
 
 	// Redis
 	rd := redis.NewClient(&redis.Options{
@@ -100,5 +102,6 @@ func init() {
 		PostReactions: postReactionsColl,
 		PostFavorite:  postFavoriteColl,
 		PostComments:  postCommentsColl,
+		Topics:        topicsColl,
 	}
 }
