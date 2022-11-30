@@ -1,8 +1,8 @@
 package models
 
-const reactionsCollectionName string = "reactions"
+const postReactionsCollectionName string = "post_reactions"
 
-type Reaction struct {
+type PostReaction struct {
 	mongoDBModel
 	AccountID uint `bson:"account_id"`
 	PostID    uint `bson:"post_id"`

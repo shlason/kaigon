@@ -16,10 +16,10 @@ import (
 )
 
 type mongoDBCollections struct {
-	ChatMessages *mongo.Collection
-	Forums       *mongo.Collection
-	Posts        *mongo.Collection
-	Reactions    *mongo.Collection
+	ChatMessages  *mongo.Collection
+	Forums        *mongo.Collection
+	Posts         *mongo.Collection
+	PostReactions *mongo.Collection
 }
 
 type mongoDBModel struct {
@@ -78,7 +78,7 @@ func init() {
 	chatMessagesColl := md.Database(configs.Database.Name).Collection(chatMessagesCollectionName)
 	forumsColl := md.Database(configs.Database.Name).Collection(forumsCollectionName)
 	postsColl := md.Database(configs.Database.Name).Collection(postsCollectionName)
-	reactionsColl := md.Database(configs.Database.Name).Collection(reactionsCollectionName)
+	postReactionsColl := md.Database(configs.Database.Name).Collection(postReactionsCollectionName)
 
 	// Redis
 	rd := redis.NewClient(&redis.Options{
@@ -90,9 +90,9 @@ func init() {
 	db = d
 	rdb = rd
 	mdb = mongoDBCollections{
-		ChatMessages: chatMessagesColl,
-		Forums:       forumsColl,
-		Posts:        postsColl,
-		Reactions:    reactionsColl,
+		ChatMessages:  chatMessagesColl,
+		Forums:        forumsColl,
+		Posts:         postsColl,
+		PostReactions: postReactionsColl,
 	}
 }
