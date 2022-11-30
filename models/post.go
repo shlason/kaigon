@@ -9,6 +9,7 @@ type Post struct {
 	ForumID       uint `bson:"forum_id"`
 	Title         string
 	Content       string
-	CommentCount  int            `bson:"comment_count"`
+	CommentCount  int `bson:"comment_count"`
+	Topics        []string
 	ReactionStats map[string]int `bson:"reaction_stats"`
 }
