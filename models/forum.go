@@ -15,8 +15,8 @@ type Forum struct {
 	Banner        string
 	Rule          string
 	Description   string
-	PopularTopics []string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	DeletedAt     time.Time
+	PopularTopics []string  `bson:"popular_topics"`
+	CreatedAt     time.Time `bson:"created_at"`
+	UpdatedAt     time.Time `bson:"updated_at"`
+	DeletedAt     time.Time `bson:"deleted_at"`
 }
