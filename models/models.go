@@ -105,8 +105,8 @@ func init() {
 		Posts:         postsColl,
 		PostReactions: postReactionsColl,
 		PostFavorite:  postFavoriteColl,
-		PostComments:  postCommentsColl,
 		PostFollowed:  postFollowedColl,
+		PostComments:  postCommentsColl,
 		Topics:        topicsColl,
 		TopicFollowed: topicFollowedColl,
 	}
