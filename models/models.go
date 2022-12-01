@@ -22,6 +22,7 @@ type mongoDBCollections struct {
 	PostReactions *mongo.Collection
 	PostFavorite  *mongo.Collection
 	PostComments  *mongo.Collection
+	PostFollowed  *mongo.Collection
 	Topics        *mongo.Collection
 	TopicFollowed *mongo.Collection
 }
@@ -85,6 +86,7 @@ func init() {
 	postReactionsColl := md.Database(configs.Database.Name).Collection(postReactionsCollectionName)
 	postFavoriteColl := md.Database(configs.Database.Name).Collection(postFavoriteCollectionName)
 	postCommentsColl := md.Database(configs.Database.Name).Collection(postCommentsCollectionName)
+	postFollowedColl := md.Database(configs.Database.Name).Collection(postFollowedCollectionName)
 	topicsColl := md.Database(configs.Database.Name).Collection(topicsCollectionName)
 	topicFollowedColl := md.Database(configs.Database.Name).Collection(topicFollowedCollectionName)
 
@@ -104,6 +106,7 @@ func init() {
 		PostReactions: postReactionsColl,
 		PostFavorite:  postFavoriteColl,
 		PostComments:  postCommentsColl,
+		PostFollowed:  postFollowedColl,
 		Topics:        topicsColl,
 		TopicFollowed: topicFollowedColl,
 	}
