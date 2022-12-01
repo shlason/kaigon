@@ -45,7 +45,9 @@ func main() {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Common Middlewares
-	r.Use(middlewares.CORS())
+	if os.Getenv("CODE_RUN_ENV") == "prod" {
+		r.Use(middlewares.CORS())
+	}
 	r.Use(gin.Recovery())
 
 	// Public API
@@ -57,7 +59,7 @@ func main() {
 
 	routes.RegisteAccountRoutes(public, private)
 	routes.RegisteAuthRoutes(public, private)
-	routes.RegisteForumRoutes(public, private)
+	routes.RegisteForumAndPostRoutes(public, private)
 	routes.RegisteTopicRoutes(public, private)
 	routes.RegisteImageRoutes(private)
 	// TODO: 記得改回 private route

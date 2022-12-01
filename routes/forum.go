@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisteForumRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
+func RegisteForumAndPostRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	// Get all forum
 	publicR.GET("/forums")
 	// Create new forum
