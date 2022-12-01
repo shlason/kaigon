@@ -36,7 +36,7 @@ func Connect(c *gin.Context) {
 		return
 	}
 
-	// TODO: 屆時改為 authPayload 來源
+	// TODO: 屆時改為 authPayload 來源，並改為 accountID
 	accountUUID := c.Query("accountUuid")
 	cli := make(client)
 
