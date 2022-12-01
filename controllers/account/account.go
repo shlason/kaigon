@@ -623,6 +623,12 @@ func GetInfo(c *gin.Context) {
 func PatchInfo(c *gin.Context) {
 	var requestPayload *patchInfoRequestPayload
 
+	errResp, err := controllers.BindJSON(c, &requestPayload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+
 	errResp, isNotValid := requestPayload.check()
 	if isNotValid {
 		c.JSON(http.StatusBadRequest, errResp)
