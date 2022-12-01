@@ -20,8 +20,14 @@ func RegisteForumRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	privateR.POST("/forums/:forumID/posts")
 	// Update post info
 	privateR.PATCH("/forums/:forumID/posts/:postID")
+	privateR.POST("/forums/:forumID/posts/:postID/favorite")
+	privateR.POST("/forums/:forumID/posts/:postID/followed")
+	privateR.PATCH("/forums/:forumID/posts/:postID/reactions")
 	// Get all cooments
 	publicR.GET("/forums/:forumID/posts/:postID/comments")
 	// Create comment
 	privateR.POST("/forums/:forumID/posts/:postID/comments")
+	// Update comment
+	privateR.POST("/forums/:forumID/posts/:postID/comments/:commentID")
+	privateR.POST("/forums/:forumID/posts/:postID/comments/:commentID/like")
 }
