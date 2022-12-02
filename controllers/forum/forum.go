@@ -9,8 +9,44 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+func ReadAll(c *gin.Context) {
+	forums, err := models.Forum{}.Find()
+	if err == mongo.ErrNoDocuments {
+		c.JSON(http.StatusOK, controllers.JSONResponse{
+			Code:    controllers.SuccessCode,
+			Message: controllers.SuccessMessage,
+			Data:    forumReadAllResponse{},
+		})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	var response forumReadAllResponse
+
+	for _, forum := range forums {
+		response = append(response, forumInfo{
+			ID:   forum.ID,
+			Name: forum.Name,
+			Icon: forum.Icon,
+		})
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data:    response,
+	})
+}
+
 func Create(c *gin.Context) {
-	var requestPayload createForumRequestPayload
+	var requestPayload forumCreateRequestPayload
 
 	errResp, err := controllers.BindJSON(c, &requestPayload)
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 
 func RegisteForumAndPostRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	// Get all forum
-	publicR.GET("/forums")
+	publicR.GET("/forums", forum.ReadAll)
 	// Create new forum
 	// TODO: 記得改回 private
 	publicR.POST("/forums", forum.Create)
