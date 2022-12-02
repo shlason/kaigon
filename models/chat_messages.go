@@ -26,7 +26,7 @@ func (m *ChatMessage) InsertOne() (*mongo.InsertOneResult, error) {
 }
 
 func (ChatMessage) FindByTo(to uint) ([]*ChatMessage, error) {
-	cursor, err := mdb.ChatMessages.Find(context.TODO(), bson.M{"to": to}, options.Find())
+	cursor, err := mdb.ChatMessages.Find(context.TODO(), bson.D{{Key: "to", Value: to}}, options.Find())
 
 	if err != nil {
 		return []*ChatMessage{}, err
