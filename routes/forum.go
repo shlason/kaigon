@@ -2,13 +2,15 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/shlason/kaigon/controllers/forum"
 )
 
 func RegisteForumAndPostRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	// Get all forum
 	publicR.GET("/forums")
 	// Create new forum
-	privateR.POST("/forums")
+	// TODO: 記得改回 private
+	publicR.POST("/forums", forum.Create)
 	// Get forum info
 	publicR.GET("/forums/:forumID")
 	// Update forum info
