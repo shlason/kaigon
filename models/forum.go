@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -10,7 +11,7 @@ import (
 const forumsCollectionName string = "forums"
 
 type Forum struct {
-	mongoDBModel
+	MongoDBModel  `bson:",inline"`
 	Name          string
 	Icon          string
 	Banner        string
@@ -20,6 +21,9 @@ type Forum struct {
 }
 
 func (f *Forum) InsertOne() (*mongo.InsertOneResult, error) {
+	current := time.Now().UTC()
+	f.CreatedAt = current
+	f.UpdatedAt = current
 	return mdb.Forums.InsertOne(context.TODO(), f)
 }
 
