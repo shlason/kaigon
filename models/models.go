@@ -27,11 +27,18 @@ type mongoDBCollections struct {
 	TopicFollowed *mongo.Collection
 }
 
-type mongoDBModel struct {
+// 作為匿名 nested struct 到各個 struct 時，該 struct 名稱不能是 package level (小寫開頭)，要大寫開頭才能正常運作
+// 若該 nested struct 要和其他 struct 同層級的話，要加上 bson inline tag
+// 例如：
+// type TestingStruct struct {
+// 	MongoDBModel `bson:",inline"`
+// 	Name         string `bson:"name"`
+// }
+type MongoDBModel struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty"`
 	CreatedAt time.Time          `bson:"created_at"`
 	UpdatedAt time.Time          `bson:"updated_at"`
-	DeletedAt time.Time          `bson:"deleted_at"`
+	DeletedAt *time.Time         `bson:"deleted_at"`
 }
 
 var db *gorm.DB
