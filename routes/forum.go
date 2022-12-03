@@ -5,16 +5,17 @@ import (
 	"github.com/shlason/kaigon/controllers/forum"
 )
 
+// TODO: forum 相關 private 操作要加上版主權限管理
 func RegisteForumAndPostRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	// Get all forum
-	publicR.GET("/forums", forum.ReadAll)
+	publicR.GET("/forums", forum.ReadFroums)
 	// Create new forum
 	// TODO: 記得改回 private
-	publicR.POST("/forums", forum.Create)
+	publicR.POST("/forums", forum.CreateForum)
 	// Get forum info
-	publicR.GET("/forums/:forumID", forum.ReadByID)
+	publicR.GET("/forums/:forumID", forum.ReadForumByID)
 	// Update forum info
-	privateR.PATCH("/forums/:forumID")
+	privateR.PATCH("/forums/:forumID", forum.PatchForum)
 
 	// Get all post from forum
 	publicR.GET("/forums/:forumID/posts")

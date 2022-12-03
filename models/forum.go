@@ -59,3 +59,17 @@ func (f *Forum) FindOneByName() error {
 func (f *Forum) FindOneByID() error {
 	return mdb.Forums.FindOne(context.TODO(), bson.D{{Key: "_id", Value: f.ID}}).Decode(&f)
 }
+
+func (f *Forum) UpdateByID(bsonM bson.M) error {
+	bsonM["updated_at"] = time.Now().UTC()
+	_, err := mdb.Forums.UpdateOne(
+		context.TODO(),
+		bson.D{
+			{Key: "_id", Value: f.ID},
+		},
+		bson.D{
+			{Key: "$set", Value: bsonM},
+		},
+	)
+	return err
+}
