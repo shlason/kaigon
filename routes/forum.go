@@ -12,7 +12,7 @@ func RegisteForumAndPostRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGro
 	// TODO: 記得改回 private
 	publicR.POST("/forums", forum.Create)
 	// Get forum info
-	publicR.GET("/forums/:forumID")
+	publicR.GET("/forums/:forumID", forum.ReadByID)
 	// Update forum info
 	privateR.PATCH("/forums/:forumID")
 

@@ -1,6 +1,8 @@
 package forum
 
 import (
+	"time"
+
 	"github.com/shlason/kaigon/controllers"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -41,4 +43,17 @@ func (p forumCreateRequestPayload) check() (errResp controllers.JSONResponse, is
 	}
 
 	return controllers.JSONResponse{}, false
+}
+
+type forumReadByIDResponse struct {
+	ID            primitive.ObjectID `json:"id"`
+	CreatedAt     time.Time          `json:"createdAt"`
+	UpdatedAt     time.Time          `json:"updatedAt"`
+	DeletedAt     *time.Time         `json:"deletedAt"`
+	Name          string             `json:"name"`
+	Icon          string             `json:"icon"`
+	Banner        string             `json:"banner"`
+	Rule          string             `json:"rule"`
+	Description   string             `json:"description"`
+	PopularTopics []string           `json:"popularTopics"`
 }

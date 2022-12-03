@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/shlason/kaigon/controllers"
 	"github.com/shlason/kaigon/models"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -103,5 +104,61 @@ func Create(c *gin.Context) {
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
 		Data:    nil,
+	})
+}
+
+func ReadByID(c *gin.Context) {
+	forumID := c.Param("forumID")
+	convertedForumID, err := primitive.ObjectIDFromHex(forumID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerGeneralFunctionGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	forumModel := models.Forum{
+		MongoDBModel: models.MongoDBModel{
+			ID: convertedForumID,
+		},
+	}
+
+	err = forumModel.FindOneByID()
+
+	if err == mongo.ErrNoDocuments {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    errCodeRequestParamForumIDNoDocument,
+			Message: errMessageRequestParamForumIDNoDocument,
+			Data:    nil,
+		})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data: forumReadByIDResponse{
+			ID:            forumModel.ID,
+			CreatedAt:     forumModel.CreatedAt,
+			UpdatedAt:     forumModel.UpdatedAt,
+			DeletedAt:     forumModel.DeletedAt,
+			Name:          forumModel.Name,
+			Icon:          forumModel.Icon,
+			Banner:        forumModel.Banner,
+			Rule:          forumModel.Rule,
+			Description:   forumModel.Description,
+			PopularTopics: forumModel.PopularTopics,
+		},
 	})
 }

@@ -55,3 +55,7 @@ func (Forum) Find() ([]Forum, error) {
 func (f *Forum) FindOneByName() error {
 	return mdb.Forums.FindOne(context.TODO(), bson.D{{Key: "name", Value: f.Name}}).Decode(&f)
 }
+
+func (f *Forum) FindOneByID() error {
+	return mdb.Forums.FindOne(context.TODO(), bson.D{{Key: "_id", Value: f.ID}}).Decode(&f)
+}
