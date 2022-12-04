@@ -653,19 +653,7 @@ func PatchInfo(c *gin.Context) {
 	}
 
 	if requestPayload.Password != nil {
-		originalHashPwd, err := bcrypt.GenerateFromPassword([]byte(*requestPayload.OriginalPassword), 14)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
-				Code:    controllers.ErrCodeServerGeneralFunctionGotError,
-				Message: err,
-				Data:    nil,
-			})
-			return
-		}
-
-		fmt.Println(string(originalHashPwd), "??", accountModel.Password)
-
-		if string(originalHashPwd) != accountModel.Password {
+		if bcrypt.CompareHashAndPassword([]byte(accountModel.Password), []byte(*requestPayload.OriginalPassword)) != nil {
 			c.JSON(http.StatusBadRequest, controllers.JSONResponse{
 				Code:    errCodeRequesyPayloadOriginalPasswordFieldMismatch,
 				Message: errMessageRequesyPayloadOriginalPasswordFieldMismatch,
