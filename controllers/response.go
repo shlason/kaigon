@@ -23,6 +23,9 @@ const (
 	ErrCodeRequestPayloadFieldNotValid    string = "err-400-rpfnv"
 	ErrMessageRequestPayloadFieldNotValid string = "request payload some field is not valid"
 
+	ErrCodeRequestPermissionUnauthorized    string = "err-401-rpu"
+	ErrMessageRequestPermissionUnauthorized string = "unauthorized request"
+
 	ErrCodeRequestPermissionForbidden    string = "err-403-rpf"
 	ErrMessageRequestPermissionForbidden string = "no permission to access"
 
