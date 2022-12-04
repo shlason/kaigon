@@ -219,6 +219,7 @@ func SignIn(c *gin.Context) {
 // @Tags        accounts
 // @Accept      json
 // @Produce     json
+// @Security    ApiKeyAuth
 // @Header      200 {string} Cookie "Refresh Token Clear"
 // @Success     200 {object} controllers.JSONResponse
 // @Failure     500 {object} controllers.JSONResponse
