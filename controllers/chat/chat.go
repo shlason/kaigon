@@ -16,16 +16,17 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// TODO: doc
 // @Summary     建立 Chat Websocket 連線 (HTTP)
 // @Description HTTP GET 方法，在處理請求時會切換協議由 HTTP -> Websocket
 // @Tags        chat
 // @Accept      json
 // @Produce     json
 // @Security    ApiKeyAuth
+// @Param       token path     string true "Chat Room Connection Token"
 // @Success     200 {object} controllers.JSONResponse
+// @Failure     401 {object} controllers.JSONResponse
 // @Failure     500 {object} controllers.JSONResponse
-// @Router      /chat/ws [get]
+// @Router      /chat/ws/:token [get]
 func Connect(c *gin.Context) {
 	wsConnToken := c.Param("token")
 	authChatWSModel := models.AuthChatWS{
