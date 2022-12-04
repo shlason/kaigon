@@ -41,6 +41,7 @@ func Connect(c *gin.Context) {
 		})
 		return
 	}
+	authChatWSModel.Delete()
 
 	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
