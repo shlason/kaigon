@@ -660,7 +660,15 @@ func UpdateCaptchaInfo(c *gin.Context) {
 	})
 }
 
-// TODO: doc
+// @Summary     取得 Chat WebSocket 連線用 Token
+// @Description 取得 Chat WebSocket 連線用 Token (1 分鐘效期)
+// @Tags        auth
+// @Accept      json
+// @Produce     json
+// @Security    ApiKeyAuth
+// @Success     200 {object} controllers.JSONResponse{data=getChatWSTokenResponse}
+// @Failure     500 {object} controllers.JSONResponse
+// @Router      /auth/captcha/{captchaUUID}/refresh [get]
 func GetChatWSToken(c *gin.Context) {
 	authPayload := c.MustGet("authPayload").(*models.JWTToken)
 
