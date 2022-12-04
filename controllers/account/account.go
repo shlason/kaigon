@@ -219,6 +219,7 @@ func SignIn(c *gin.Context) {
 // @Tags        accounts
 // @Accept      json
 // @Produce     json
+// @Security    ApiKeyAuth
 // @Header      200 {string} Cookie "Refresh Token Clear"
 // @Success     200 {object} controllers.JSONResponse
 // @Failure     500 {object} controllers.JSONResponse
@@ -623,6 +624,12 @@ func GetInfo(c *gin.Context) {
 func PatchInfo(c *gin.Context) {
 	var requestPayload *patchInfoRequestPayload
 
+	errResp, err := controllers.BindJSON(c, &requestPayload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errResp)
+		return
+	}
+
 	errResp, isNotValid := requestPayload.check()
 	if isNotValid {
 		c.JSON(http.StatusBadRequest, errResp)
@@ -647,17 +654,7 @@ func PatchInfo(c *gin.Context) {
 	}
 
 	if requestPayload.Password != nil {
-		originalHashPwd, err := bcrypt.GenerateFromPassword([]byte(*requestPayload.OriginalPassword), 14)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
-				Code:    controllers.ErrCodeServerGeneralFunctionGotError,
-				Message: err,
-				Data:    nil,
-			})
-			return
-		}
-
-		if string(originalHashPwd) != accountModel.Password {
+		if bcrypt.CompareHashAndPassword([]byte(accountModel.Password), []byte(*requestPayload.OriginalPassword)) != nil {
 			c.JSON(http.StatusBadRequest, controllers.JSONResponse{
 				Code:    errCodeRequesyPayloadOriginalPasswordFieldMismatch,
 				Message: errMessageRequesyPayloadOriginalPasswordFieldMismatch,

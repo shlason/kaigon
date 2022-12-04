@@ -19,4 +19,7 @@ func RegisteAuthRoutes(publicR *gin.RouterGroup, privateR *gin.RouterGroup) {
 	publicR.GET("/auth/captcha", auth.GetCaptchaInfo)
 	publicR.GET("/auth/captcha/:captchaUUID/image", auth.GetCaptchaImage)
 	publicR.GET("/auth/captcha/:captchaUUID/refresh", auth.UpdateCaptchaInfo)
+
+	// Chat WebSocket Token
+	privateR.GET("/auth/chat/ws/token", auth.GetChatWSToken)
 }

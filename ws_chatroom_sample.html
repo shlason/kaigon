@@ -38,7 +38,7 @@
             const accountUUID = document.getElementById('accountUUID').value
 
             ws = new WebSocket(`ws://localhost:8080/api/chat/ws?accountUuid=${accountUUID}`);  
-            // onOpen被觸發時, 去嘗試連線 
+            // onOpen被觸發時, 去嘗試連線
             ws.onopen = function(evt) {  
                 console.log("Connection open ...");  
                 ws.send(JSON.stringify({

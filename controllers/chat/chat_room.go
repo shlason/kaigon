@@ -399,6 +399,7 @@ func updateChatRoomLastSeenHandler(clients map[string]client, msg message) {
 	}
 }
 
+// TODO: doc
 // @Summary     建立聊天室
 // @Description 建立聊天室
 // @Tags        chat
@@ -416,27 +417,75 @@ func CreateRoom(c *gin.Context) {
 	var requestPayload createRoomRequestPayload
 
 	errResp, err := controllers.BindJSON(c, &requestPayload)
-
 	if err != nil {
 		c.JSON(http.StatusBadRequest, errResp)
 		return
 	}
 
 	errResp, isNotValid := requestPayload.check()
-
 	if isNotValid {
 		c.JSON(http.StatusBadRequest, errResp)
 		return
 	}
 
-	chatRoomModel := models.ChatRoom{
-		Type:   requestPayload.Type,
-		Avatar: requestPayload.Avatar,
-		Name:   requestPayload.Name,
+	invitedAccountModel := models.Account{
+		Email: *requestPayload.InvitedUserEmail,
+	}
+	result := invitedAccountModel.ReadByEmail()
+	if result.Error == gorm.ErrRecordNotFound {
+		c.JSON(http.StatusBadRequest, controllers.JSONResponse{
+			Code:    errCodeRequestFieldInvitedUserEmailNotExist,
+			Message: errMessageRequestFieldInvitedUserEmailNotExist,
+			Data:    nil,
+		})
+		return
+	}
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
 	}
 
-	result := chatRoomModel.Create()
+	invitedAccountProfileModel := models.AccountProfile{
+		AccountUUID: invitedAccountModel.UUID,
+	}
+	invitedAccountSettingModel := models.AccountSetting{
+		AccountUUID: invitedAccountModel.UUID,
+	}
+	result = invitedAccountProfileModel.ReadByAccountUUID()
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+	result = invitedAccountSettingModel.ReadByAccountUUID()
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerDatabaseQueryGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
 
+	chatRoomModel := models.ChatRoom{
+		Type: requestPayload.Type,
+	}
+	if chatRoomModel.Type == chatRoomTypes["personal"] {
+		chatRoomModel.Name = invitedAccountSettingModel.Name
+		chatRoomModel.Avatar = invitedAccountProfileModel.Avatar
+	}
+	if chatRoomModel.Type == chatRoomTypes["group"] {
+		chatRoomModel.Name = *requestPayload.Name
+		chatRoomModel.Avatar = *requestPayload.Avatar
+	}
+	result = chatRoomModel.Create()
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
 			Code:    controllers.ErrCodeServerDatabaseCreateGotError,
@@ -454,7 +503,6 @@ func CreateRoom(c *gin.Context) {
 		LastSeenAt:  time.Now().UTC(),
 	}
 	result = chatRoomMemberModel.Create()
-
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
 			Code:    controllers.ErrCodeServerDatabaseCreateGotError,

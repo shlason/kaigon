@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/shlason/kaigon/controllers"
+	"github.com/shlason/kaigon/utils"
 )
 
 type chatRoomMemberResponse struct {
@@ -99,19 +100,19 @@ type updateChatRoomCustomSettingResponse struct {
 }
 
 type createRoomRequestPayload struct {
-	Type   string `json:"type"`
-	Name   string `json:"name"`
-	Avatar string `json:"avatar"`
+	Type             string  `json:"type"`
+	Name             *string `json:"name"`
+	Avatar           *string `json:"avatar"`
+	InvitedUserEmail *string `json:"invitedUserEmail"`
+}
+
+var chatRoomTypes = map[string]string{
+	"personal": "personal",
+	"group":    "group",
 }
 
 func (p createRoomRequestPayload) check() (errResp controllers.JSONResponse, isNotValid bool) {
-	const maximumNameLength = 20
-	var acceptTypes = map[string]string{
-		"personal": "personal",
-		"group":    "group",
-	}
-
-	if _, ok := acceptTypes[p.Type]; !ok {
+	if _, ok := chatRoomTypes[p.Type]; !ok {
 		return controllers.JSONResponse{
 			Code:    controllers.ErrCodeRequestPayloadFieldNotValid,
 			Message: controllers.ErrMessageRequestPayloadFieldNotValid,
@@ -119,12 +120,24 @@ func (p createRoomRequestPayload) check() (errResp controllers.JSONResponse, isN
 		}, true
 	}
 
-	if len(p.Name) > maximumNameLength {
-		return controllers.JSONResponse{
-			Code:    controllers.ErrCodeRequestPayloadFieldNotValid,
-			Message: controllers.ErrMessageRequestPayloadFieldNotValid,
-			Data:    nil,
-		}, true
+	if p.Type == chatRoomTypes["personal"] {
+		if p.InvitedUserEmail == nil || !utils.IsValidEmailAddress(*p.InvitedUserEmail) {
+			return controllers.JSONResponse{
+				Code:    controllers.ErrCodeRequestPayloadFieldNotValid,
+				Message: controllers.ErrMessageRequestPayloadFieldNotValid,
+				Data:    nil,
+			}, true
+		}
+	}
+
+	if p.Type == chatRoomTypes["group"] {
+		if p.Avatar == nil || *p.Avatar == "" || p.Name == nil || *p.Name == "" {
+			return controllers.JSONResponse{
+				Code:    controllers.ErrCodeRequestPayloadFieldNotValid,
+				Message: controllers.ErrMessageRequestPayloadFieldNotValid,
+				Data:    nil,
+			}, true
+		}
 	}
 
 	return controllers.JSONResponse{}, false

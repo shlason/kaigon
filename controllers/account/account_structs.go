@@ -241,7 +241,7 @@ type getInfoResponsePayload struct {
 }
 
 type patchInfoRequestPayload struct {
-	Email            *string `json:"eamil"`
+	Email            *string `json:"email"`
 	Password         *string `json:"password"`
 	OriginalPassword *string `json:"originalPassword"`
 }

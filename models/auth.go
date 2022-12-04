@@ -155,7 +155,7 @@ func (aaev *AuthAccountEmailVerification) Create() error {
 	}
 	aaev.Token = string(token)
 	aaev.Code = string(code)
-	return err
+	return nil
 }
 
 func (aaev *AuthAccountEmailVerification) Read() error {
@@ -207,7 +207,7 @@ func (aarp *AuthAccountResetPassword) Create() error {
 	}
 	aarp.Token = string(token)
 	aarp.Code = string(code)
-	return err
+	return nil
 }
 
 func (aarp *AuthAccountResetPassword) Read() error {
@@ -231,7 +231,7 @@ func (aarp *AuthAccountResetPassword) Update() error {
 	}
 	aarp.Token = string(token)
 	aarp.Code = string(code)
-	return err
+	return nil
 }
 
 func (aarp *AuthAccountResetPassword) Delete() error {
@@ -240,4 +240,32 @@ func (aarp *AuthAccountResetPassword) Delete() error {
 
 func (aarp *AuthAccountResetPassword) IsMatch() bool {
 	return aarp.Result == fmt.Sprintf("%s/%s", aarp.Token, aarp.Code)
+}
+
+type AuthChatWS struct {
+	AccountUUID string
+	Token       string
+}
+
+func (acws *AuthChatWS) Create() error {
+	token, err := bcrypt.GenerateFromPassword([]byte(uuid.NewString()), 14)
+	if err != nil {
+		return err
+	}
+	err = rdb.SetNX(rctx, fmt.Sprintf("auth:chat:ws:token:%s", token), acws.AccountUUID, 1*time.Minute).Err()
+	if err != nil {
+		return err
+	}
+	acws.Token = string(token)
+	return nil
+}
+
+func (acws *AuthChatWS) Read() error {
+	val, err := rdb.Get(rctx, fmt.Sprintf("auth:chat:ws:token:%s", acws.Token)).Result()
+	acws.AccountUUID = val
+	return err
+}
+
+func (acws *AuthChatWS) Delete() error {
+	return rdb.Del(rctx, fmt.Sprintf("auth:chat:ws:token:%s", acws.Token)).Err()
 }

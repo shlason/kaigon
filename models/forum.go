@@ -2,10 +2,12 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const forumsCollectionName string = "forums"
@@ -27,6 +29,47 @@ func (f *Forum) InsertOne() (*mongo.InsertOneResult, error) {
 	return mdb.Forums.InsertOne(context.TODO(), f)
 }
 
+func (Forum) Find() ([]Forum, error) {
+	cursor, err := mdb.Forums.Find(context.TODO(), bson.D{}, options.Find())
+
+	if err != nil {
+		return []Forum{}, err
+	}
+
+	var results []Forum
+
+	for cursor.Next(context.TODO()) {
+		var elem Forum
+		err := cursor.Decode(&elem)
+		fmt.Println(elem)
+		if err != nil {
+			return []Forum{}, err
+		}
+
+		results = append(results, elem)
+	}
+
+	return results, nil
+}
+
 func (f *Forum) FindOneByName() error {
 	return mdb.Forums.FindOne(context.TODO(), bson.D{{Key: "name", Value: f.Name}}).Decode(&f)
+}
+
+func (f *Forum) FindOneByID() error {
+	return mdb.Forums.FindOne(context.TODO(), bson.D{{Key: "_id", Value: f.ID}}).Decode(&f)
+}
+
+func (f *Forum) UpdateByID(bsonM bson.M) error {
+	bsonM["updated_at"] = time.Now().UTC()
+	_, err := mdb.Forums.UpdateOne(
+		context.TODO(),
+		bson.D{
+			{Key: "_id", Value: f.ID},
+		},
+		bson.D{
+			{Key: "$set", Value: bsonM},
+		},
+	)
+	return err
 }
