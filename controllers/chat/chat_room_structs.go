@@ -143,6 +143,10 @@ func (p createRoomRequestPayload) check() (errResp controllers.JSONResponse, isN
 	return controllers.JSONResponse{}, false
 }
 
+type creatRoomResponse struct {
+	ChatRoomID uint `json:"chatRoomId"`
+}
+
 type getRoomInviteCodeResponse struct {
 	Code string `json:"code"`
 }

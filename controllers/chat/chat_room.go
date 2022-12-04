@@ -399,17 +399,17 @@ func updateChatRoomLastSeenHandler(clients map[string]client, msg message) {
 	}
 }
 
-// TODO: doc
 // @Summary     建立聊天室
-// @Description 建立聊天室
+// @Description 建立聊天室，若為個人聊天室則只需帶 invitedUserEmail，群組聊天室則帶 avatar, name
 // @Tags        chat
 // @Accept      json
 // @Produce     json
 // @Security    ApiKeyAuth
 // @Param       type   body     string true "聊天室類型 (personal or group)"
-// @Param       name   body     string true "Chat Room Name"
-// @Param       avatar body     string true "Chat Room Avatar"
-// @Success     200    {object} controllers.JSONResponse
+// @Param       name   body     string false "Chat Room Name"
+// @Param       avatar body     string false "Chat Room Avatar"
+// @Param       invitedUserEmail body     string false "為個人聊天室受邀成員之 email"
+// @Success     200    {object} controllers.JSONResponse{data=creatRoomResponse}
 // @Failure     400    {object} controllers.JSONResponse
 // @Failure     500    {object} controllers.JSONResponse
 // @Router      /chat/room [post]
@@ -515,7 +515,9 @@ func CreateRoom(c *gin.Context) {
 	c.JSON(http.StatusOK, controllers.JSONResponse{
 		Code:    controllers.SuccessCode,
 		Message: controllers.SuccessMessage,
-		Data:    nil,
+		Data: creatRoomResponse{
+			ChatRoomID: chatRoomModel.ID,
+		},
 	})
 }
 
