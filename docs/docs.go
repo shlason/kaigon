@@ -785,6 +785,11 @@ const docTemplate = `{
         },
         "/account/signout": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "登出帳號收回和刪除 refresh token",
                 "consumes": [
                     "application/json"
@@ -1122,7 +1127,12 @@ const docTemplate = `{
         },
         "/auth/captcha/{captchaUUID}/refresh": {
             "get": {
-                "description": "刷新與 UUID 相對應的驗證圖片資訊及效期",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "取得 Chat WebSocket 連線用 Token (1 分鐘效期)",
                 "consumes": [
                     "application/json"
                 ],
@@ -1132,21 +1142,24 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "刷新圖形驗證",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Captcha Info",
-                        "name": "captchaUUID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "summary": "取得 Chat WebSocket 連線用 Token",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controllers.JSONResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JSONResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/auth.getChatWSTokenResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "500": {
@@ -2415,6 +2428,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.getChatWSTokenResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
                     "type": "string"
                 }
             }
