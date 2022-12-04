@@ -1433,7 +1433,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "建立聊天室",
+                "description": "建立聊天室，若為個人聊天室則只需帶 invitedUserEmail，群組聊天室則帶 avatar, name",
                 "consumes": [
                     "application/json"
                 ],
@@ -1458,7 +1458,6 @@ const docTemplate = `{
                         "description": "Chat Room Name",
                         "name": "name",
                         "in": "body",
-                        "required": true,
                         "schema": {
                             "type": "string"
                         }
@@ -1467,7 +1466,14 @@ const docTemplate = `{
                         "description": "Chat Room Avatar",
                         "name": "avatar",
                         "in": "body",
-                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "為個人聊天室受邀成員之 email",
+                        "name": "invitedUserEmail",
+                        "in": "body",
                         "schema": {
                             "type": "string"
                         }
@@ -1477,7 +1483,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controllers.JSONResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controllers.JSONResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/chat.creatRoomResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1612,7 +1630,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/chat/ws": {
+        "/chat/ws/:token": {
             "get": {
                 "security": [
                     {
@@ -1630,9 +1648,24 @@ const docTemplate = `{
                     "chat"
                 ],
                 "summary": "建立 Chat Websocket 連線 (HTTP)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Chat Room Connection Token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.JSONResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/controllers.JSONResponse"
                         }
@@ -2525,6 +2558,14 @@ const docTemplate = `{
         },
         "chat.client": {
             "type": "object"
+        },
+        "chat.creatRoomResponse": {
+            "type": "object",
+            "properties": {
+                "chatRoomId": {
+                    "type": "integer"
+                }
+            }
         },
         "chat.getChatMessageRequestPayload": {
             "type": "object",

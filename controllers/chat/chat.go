@@ -23,9 +23,9 @@ var upgrader = websocket.Upgrader{
 // @Produce     json
 // @Security    ApiKeyAuth
 // @Param       token path     string true "Chat Room Connection Token"
-// @Success     200 {object} controllers.JSONResponse
-// @Failure     401 {object} controllers.JSONResponse
-// @Failure     500 {object} controllers.JSONResponse
+// @Success     200   {object} controllers.JSONResponse
+// @Failure     401   {object} controllers.JSONResponse
+// @Failure     500   {object} controllers.JSONResponse
 // @Router      /chat/ws/:token [get]
 func Connect(c *gin.Context) {
 	wsConnToken := c.Param("token")
