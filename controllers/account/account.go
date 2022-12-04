@@ -663,6 +663,8 @@ func PatchInfo(c *gin.Context) {
 			return
 		}
 
+		fmt.Println(string(originalHashPwd), "??", accountModel.Password)
+
 		if string(originalHashPwd) != accountModel.Password {
 			c.JSON(http.StatusBadRequest, controllers.JSONResponse{
 				Code:    errCodeRequesyPayloadOriginalPasswordFieldMismatch,
