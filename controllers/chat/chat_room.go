@@ -405,13 +405,13 @@ func updateChatRoomLastSeenHandler(clients map[string]client, msg message) {
 // @Accept      json
 // @Produce     json
 // @Security    ApiKeyAuth
-// @Param       type   body     string true "聊天室類型 (personal or group)"
-// @Param       name   body     string false "Chat Room Name"
-// @Param       avatar body     string false "Chat Room Avatar"
+// @Param       type             body     string true  "聊天室類型 (personal or group)"
+// @Param       name             body     string false "Chat Room Name"
+// @Param       avatar           body     string false "Chat Room Avatar"
 // @Param       invitedUserEmail body     string false "為個人聊天室受邀成員之 email"
-// @Success     200    {object} controllers.JSONResponse{data=creatRoomResponse}
-// @Failure     400    {object} controllers.JSONResponse
-// @Failure     500    {object} controllers.JSONResponse
+// @Success     200              {object} controllers.JSONResponse{data=creatRoomResponse}
+// @Failure     400              {object} controllers.JSONResponse
+// @Failure     500              {object} controllers.JSONResponse
 // @Router      /chat/room [post]
 func CreateRoom(c *gin.Context) {
 	var requestPayload createRoomRequestPayload
