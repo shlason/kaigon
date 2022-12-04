@@ -659,3 +659,29 @@ func UpdateCaptchaInfo(c *gin.Context) {
 		Data:    nil,
 	})
 }
+
+// TODO: doc
+func GetChatWSToken(c *gin.Context) {
+	authPayload := c.MustGet("authPayload").(*models.JWTToken)
+
+	authChatWSModel := models.AuthChatWS{
+		AccountUUID: authPayload.AccountUUID,
+	}
+	err := authChatWSModel.Create()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, controllers.JSONResponse{
+			Code:    controllers.ErrCodeServerRedisSetNXKeyGotError,
+			Message: err,
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, controllers.JSONResponse{
+		Code:    controllers.SuccessCode,
+		Message: controllers.SuccessMessage,
+		Data: getChatWSTokenResponse{
+			Token: authChatWSModel.Token,
+		},
+	})
+}

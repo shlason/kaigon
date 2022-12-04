@@ -77,3 +77,7 @@ type updateCaptchaImageRequestParamsPayload struct {
 func (p *updateCaptchaImageRequestParamsPayload) BindParams(c *gin.Context) {
 	p.CaptchaUUID = c.Param("captchaUUID")
 }
+
+type getChatWSTokenResponse struct {
+	Token string `json:"token"`
+}
