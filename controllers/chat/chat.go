@@ -84,6 +84,7 @@ func Connect(c *gin.Context) {
 		}
 	}()
 
+	// TODO: timeout 10s
 	for {
 		var msg message
 

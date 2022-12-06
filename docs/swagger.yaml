@@ -1006,6 +1006,31 @@ paths:
     get:
       consumes:
       - application/json
+      description: 刷新與 UUID 相對應的驗證圖片資訊及效期
+      parameters:
+      - description: Captcha Info
+        in: path
+        name: captchaUUID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.JSONResponse'
+      summary: 刷新圖形驗證
+      tags:
+      - auth
+  /auth/chat/ws/token:
+    get:
+      consumes:
+      - application/json
       description: 取得 Chat WebSocket 連線用 Token (1 分鐘效期)
       produces:
       - application/json

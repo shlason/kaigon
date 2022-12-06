@@ -668,7 +668,7 @@ func UpdateCaptchaInfo(c *gin.Context) {
 // @Security    ApiKeyAuth
 // @Success     200 {object} controllers.JSONResponse{data=getChatWSTokenResponse}
 // @Failure     500 {object} controllers.JSONResponse
-// @Router      /auth/captcha/{captchaUUID}/refresh [get]
+// @Router      /auth/chat/ws/token [get]
 func GetChatWSToken(c *gin.Context) {
 	authPayload := c.MustGet("authPayload").(*models.JWTToken)
 
