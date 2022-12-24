@@ -7,6 +7,8 @@ func RandStringBytes(n int) string {
 	const letterBytes = "23456789abcdefghkmnopqrstuvwxyzABCDEFGHJKLMNOPQRSTUVWXYZ"
 	b := make([]byte, n)
 	for i := range b {
+		// TODO: seed
+		// TODO: nano ID
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 
